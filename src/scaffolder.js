@@ -84,12 +84,30 @@ async function scaffold(answers) {
   await fs.writeFile(path.join(commandsDir, 'setup.md'), setupTpl(baseContext));
   process.stdout.write(chalk.green('  ✓ ') + chalk.dim('.claude/commands/setup.md') + chalk.cyan('  (bootstrap)\n'));
 
+  // ── Help skill ────────────────────────────────────────────────────
+  const helpTpl = loadTemplate('commands/help.md.hbs');
+  const helpCustomRoles = answers.customRoles || [];
+  const helpCtx = {
+    ...baseContext,
+    defaultAgents: DEFAULT_AGENTS,
+    conditionalAgents,
+    customRoles: helpCustomRoles,
+    hasConditionalAgents: conditionalAgents.length > 0,
+    hasCustomRoles: helpCustomRoles.length > 0,
+  };
+  await fs.writeFile(path.join(commandsDir, 'help.md'), helpTpl(helpCtx));
+  process.stdout.write(chalk.green('  ✓ ') + chalk.dim('.claude/commands/help.md') + chalk.cyan('  (help)\n'));
+
   // ── Custom roles ──────────────────────────────────────────────────
   if (answers.customRoles && answers.customRoles.length > 0) {
     const customTpl = loadTemplate('commands/custom-role.md.hbs');
     for (const role of answers.customRoles) {
       const ctx = { ...baseContext, ...role, roleName: role.name, characterTrait: role.trait };
-      await fs.writeFile(path.join(commandsDir, `${role.file}.md`), customTpl(ctx));
+      const rendered = customTpl(ctx);
+      await fs.writeFile(path.join(commandsDir, `${role.file}.md`), rendered);
+      if (role.command && role.command !== role.file) {
+        await fs.writeFile(path.join(commandsDir, `${role.command}.md`), rendered);
+      }
       process.stdout.write(chalk.green('  ✓ ') + chalk.dim(`.claude/commands/${role.file}.md`) + chalk.cyan(`  (${role.character})\n`));
     }
   }
@@ -163,15 +181,19 @@ function printManifest(answers, result) {
   // Custom roles (if any)
   if (customRoles.length > 0) {
     console.log(chalk.dim('\n  ── Your custom roles ───────────────────────────────────────'));
+    const maxCustomChar = Math.max(...customRoles.map((r) => r.character.length));
+    const maxCustomCmd = Math.max(...customRoles.map((r) => (r.command || r.file).length));
     for (const r of customRoles) {
+      const cmd = r.command || r.file;
       console.log(
-        '  ' + chalk.cyan(r.character.padEnd(maxChar + 2)) +
-        chalk.white(`/${r.file}`)
+        '  ' + chalk.cyan(r.character.padEnd(maxCustomChar + 2)) +
+        chalk.white(('/' + cmd).padEnd(maxCustomCmd + 3)) +
+        chalk.dim('or  ') + chalk.dim(`/${r.file}`)
       );
     }
   }
 
-  console.log('\n  ' + chalk.dim('Setup skill: ') + chalk.white('/setup'));
+  console.log('\n  ' + chalk.dim('Setup skill: ') + chalk.white('/setup') + chalk.dim('   Help: ') + chalk.white('/help'));
   console.log(
     '\n  ' +
     chalk.bold.yellow('✨ Mischief managed.') +

@@ -1,0 +1,74 @@
+---
+description: Help — lists all available agent commands for {{projectName}}
+---
+
+# Help — {{projectName}} Agent Commands
+
+> *"It does not do to dwell on dreams and forget to live." — Albus Dumbledore*
+
+List every available agent command for this project, along with their character alias and role.
+
+## Your Order — Always Available
+
+| Character | Command | Alias | Role |
+|-----------|---------|-------|------|
+{{#each defaultAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} |
+{{/each}}
+
+## Stack Agents
+
+{{#if hasConditionalAgents}}
+| Character | Command | Alias | Role |
+|-----------|---------|-------|------|
+{{#each conditionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} |
+{{/each}}
+{{else}}
+*(None selected — you chose no frontend, backend, or specialized domain.)*
+{{/if}}
+
+{{#if hasCustomRoles}}
+## Custom Roles
+
+| Character | Command | Alias | Role |
+|-----------|---------|-------|------|
+{{#each customRoles}}| {{character}} | `/{{command}}` | `/{{file}}` | {{name}} |
+{{/each}}
+{{/if}}
+
+## Utilities
+
+| Command | What it does |
+|---------|-------------|
+| `/setup` | Bootstrap or repair the `.agent/` directory structure |
+| `/help` | This command — show all available agent commands |
+
+## How to Address an Agent
+
+Every agent responds to two commands — their character name or their role alias:
+
+```
+/dumbledore   →  Engineering Manager
+/hermione     →  Staff Engineer
+/moody        →  QA Engineer
+/snape        →  Security Engineer
+```
+
+Speak to them directly in your agentic IDE:
+
+```
+/dumbledore here is what we are building this sprint...
+/hermione please review the PR at #42
+/moody run a full bug hunt on the auth module
+```
+
+## Communication Protocol
+
+Agents communicate via files in `.agent/`:
+
+| Path | Purpose |
+|------|---------|
+| `.agent/messages/<agent>.md` | Send a task or message to an agent |
+| `.agent/status/<agent>.md` | Check what an agent is currently working on |
+| `.agent/backlog/tasks.md` | Project backlog — Backlog / In Progress / Done |
+| `.agent/reports/` | Heartbeat reports, release history |
+| `docs/wiki/11-troubleshooting.md` | Shared troubleshooting knowledge base |

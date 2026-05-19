@@ -161,14 +161,16 @@ async function runQuestionnaire() {
     let character = suggested.character;
     let trait = suggested.trait;
 
+    let command = suggested.command;
     if (!useCharacter) {
       character = await text({ message: 'Custom persona name for this role?' });
       if (isCancel(character)) { cancel('Cancelled.'); process.exit(0); }
       trait = 'Custom';
+      command = character.trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
     }
 
     const fileSlug = roleName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    customRoles.push({ name: roleName, description: roleDescription, character, trait, file: fileSlug });
+    customRoles.push({ name: roleName, description: roleDescription, character, trait, command, file: fileSlug });
 
     addMore = await confirm({ message: 'Add another custom role?' });
     if (isCancel(addMore)) { cancel('Cancelled.'); process.exit(0); }
