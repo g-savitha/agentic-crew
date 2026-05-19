@@ -10,7 +10,7 @@ List every available agent command and the communication protocol for this proje
 
 | Role | Command | What they do |
 |------|---------|--------------|
-{{#each defaultAgents}}| {{role}} | `/{{file}}` | {{{why}}} |
+{{#each defaultAgents}}| {{role}} | `/{{file}}` | {{md why}} |
 {{/each}}
 
 ## Stack Agents
@@ -18,7 +18,7 @@ List every available agent command and the communication protocol for this proje
 {{#if hasConditionalAgents}}
 | Role | Command | What they do |
 |------|---------|--------------|
-{{#each conditionalAgents}}| {{role}} | `/{{file}}` | {{{why}}} |
+{{#each conditionalAgents}}| {{role}} | `/{{file}}` | {{md why}} |
 {{/each}}
 {{else}}
 *(None selected — no frontend, backend, or specialized domain.)*
@@ -29,7 +29,7 @@ List every available agent command and the communication protocol for this proje
 
 | Role | Command | What they do |
 |------|---------|--------------|
-{{#each optionalAgents}}| {{role}} | `/{{file}}` | {{{why}}} |
+{{#each optionalAgents}}| {{role}} | `/{{file}}` | {{md why}} |
 {{/each}}
 {{/if}}
 
@@ -38,7 +38,7 @@ List every available agent command and the communication protocol for this proje
 
 | Role | Command | Description |
 |------|---------|-------------|
-{{#each customRoles}}| {{name}} | `/{{file}}` | {{{description}}} |
+{{#each customRoles}}| {{name}} | `/{{file}}` | {{md description}} |
 {{/each}}
 {{/if}}
 

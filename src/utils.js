@@ -99,6 +99,39 @@ function assertNoCollision(reserved, file, command, label) {
   if (command) reserved.add(command);
 }
 
+/**
+ * Resolve output directory and ensure it stays within cwd (prevents path traversal).
+ * @param {string} outputDir
+ * @param {string} [cwd]
+ * @returns {string}
+ */
+function resolveSafeOutputDir(outputDir, cwd = process.cwd()) {
+  const raw = (outputDir || '.').trim() || '.';
+  const base = path.resolve(cwd);
+
+  if (path.isAbsolute(raw)) {
+    return path.resolve(raw);
+  }
+
+  const resolved = path.resolve(base, raw);
+  const rel = path.relative(base, resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(
+      `Relative --output-dir must stay within the current working directory (${base}). Got: ${outputDir}`
+    );
+  }
+  return resolved;
+}
+
+/**
+ * @param {string} filePath
+ * @param {string} outputDir
+ * @returns {string}
+ */
+function relativeCommandPath(filePath, outputDir) {
+  return path.relative(outputDir, filePath).replace(/\\/g, '/');
+}
+
 module.exports = {
   slugify,
   countAgents,
@@ -107,4 +140,6 @@ module.exports = {
   normalizeTargets,
   normalizeDomains,
   assertNoCollision,
+  resolveSafeOutputDir,
+  relativeCommandPath,
 };

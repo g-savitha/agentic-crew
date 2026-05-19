@@ -22,7 +22,7 @@ The following agents must have status and message files (from `.agentic-crew.jso
 ## What You Do
 
 **Step 1 — Verify command directories**:
-- `{{#each commandDirs}}{{{this}}}{{#unless @last}}`, `{{/unless}}{{/each}}`
+- `{{#each commandDirs}}{{this}}{{#unless @last}}`, `{{/unless}}{{/each}}`
 - List any missing agent skill files; do not overwrite existing skill content.
 
 **Step 2 — Create `.agent/` structure**:
@@ -63,5 +63,5 @@ Next step: CEO should brief the team via /manager.
 ## What NOT to Do
 
 - Do not overwrite existing status or message files (they may contain important state)
-- Do not modify command skill files in `{{#each commandDirs}}{{{this}}}{{#unless @last}}` or `{{/unless}}{{/each}}` (skill definitions are the source of truth)
+- Do not modify command skill files in `{{#each commandDirs}}{{this}}{{#unless @last}}` or `{{/unless}}{{/each}}` (skill definitions are the source of truth)
 - Do not create content in `docs/` beyond the directory structure (Documentation owns that)

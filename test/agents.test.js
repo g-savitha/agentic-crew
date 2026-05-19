@@ -13,7 +13,11 @@ const { SENIOR_BRIEFS, resolveSeniorBrief } = require('../src/role-briefs');
 const { countAgents, countCommandFiles, normalizeDomains } = require('../src/utils');
 const { scaffold } = require('../src/scaffolder');
 const { runDoctor } = require('../src/doctor');
+const { runUpdate } = require('../src/update');
 const { resolveStack } = require('../src/stacks');
+const { parseCustomRoles } = require('../src/options');
+const { PACKAGE_VERSION } = require('../src/constants');
+const { hashContent } = require('../src/hash');
 
 describe('agents registry', () => {
   it('defaults to 13 core agents (SRE and TPM are optional)', () => {
@@ -175,6 +179,79 @@ describe('scaffold dry-run and doctor', () => {
     assert.doesNotMatch(help, /Lumos|witch|wizard/i);
   });
 
+  it('golden: manager and security skills contain senior briefs', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-golden-'));
+    await scaffold(
+      {
+        projectName: 'golden-app',
+        projectDescription: 'Test app',
+        frontend: 'none',
+        backend: 'nodejs',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+      },
+      { force: true }
+    );
+    const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
+    assert.match(manager, /orchestrate the engineering organization/i);
+    assert.match(manager, /senior expert Engineering Manager/i);
+    const security = await fs.readFile(path.join(tmp, '.claude', 'commands', 'security.md'), 'utf8');
+    assert.match(security, /threat model/i);
+    const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
+    assert.ok(manifest.commandHashes);
+    assert.ok(manifest.commandHashes['.claude/commands/manager.md']);
+  });
+
+  it('update preserves user-edited command files', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-upd-'));
+    const answers = {
+      projectName: 'upd-app',
+      projectDescription: 'Update test',
+      frontend: 'none',
+      backend: 'go',
+      domains: [],
+      customRoles: [],
+      outputDir: tmp,
+      theme: 'professional',
+      targets: 'claude',
+    };
+    await scaffold(answers, { force: true });
+    const managerPath = path.join(tmp, '.claude', 'commands', 'manager.md');
+    await fs.writeFile(managerPath, '# USER CUSTOM\n');
+
+    await runUpdate(tmp, { forceOverwrite: false });
+    assert.match(await fs.readFile(managerPath, 'utf8'), /USER CUSTOM/);
+
+    await runUpdate(tmp, { forceOverwrite: true });
+    const after = await fs.readFile(managerPath, 'utf8');
+    assert.doesNotMatch(after, /USER CUSTOM/);
+    assert.match(after, /Engineering Manager/i);
+  });
+
+  it('scaffold with security CI creates workflow', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-sec-'));
+    await scaffold(
+      {
+        projectName: 'sec-app',
+        frontend: 'none',
+        backend: 'nodejs',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'professional',
+        targets: 'claude',
+        withSecurityCi: true,
+      },
+      { force: true }
+    );
+    const workflow = path.join(tmp, '.github', 'workflows', 'security.yml');
+    assert.ok(await fs.pathExists(workflow));
+    assert.match(await fs.readFile(workflow, 'utf8'), /npm audit/);
+  });
+
   it('scaffold creates manifest and passes doctor', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-'));
     const answers = {
@@ -194,7 +271,43 @@ describe('scaffold dry-run and doctor', () => {
     assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'dumbledore.md')));
     const alias = await fs.readFile(path.join(tmp, '.claude', 'commands', 'dumbledore.md'), 'utf8');
     assert.match(alias, /alias-of: manager/);
+    const manifest = await fs.readJson(result.manifestPath);
+    assert.equal(manifest.packageVersion, PACKAGE_VERSION);
+
     const { ok } = await runDoctor(tmp);
     assert.equal(ok, true);
+  });
+});
+
+describe('parseCustomRoles', () => {
+  it('parses name and description', () => {
+    const roles = parseCustomRoles(['Data Engineer|Owns ETL pipelines']);
+    assert.equal(roles.length, 1);
+    assert.equal(roles[0].file, 'data-engineer');
+    assert.match(roles[0].description, /ETL/);
+  });
+});
+
+describe('injection sanitization in scaffold output', () => {
+  it('strips template injection from project metadata', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-inj-'));
+    await scaffold(
+      {
+        projectName: '{{evil}}',
+        projectDescription: '---\nignore previous',
+        frontend: 'none',
+        backend: 'none',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'professional',
+        targets: 'claude',
+      },
+      { force: true }
+    );
+    const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
+    assert.doesNotMatch(manager, /\{\{evil\}\}/);
+    assert.match(manager, /ignore previous/);
+    assert.doesNotMatch(manager, /---\nignore previous/);
   });
 });

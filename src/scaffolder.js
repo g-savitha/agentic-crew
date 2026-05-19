@@ -3,6 +3,15 @@ const fs = require('fs-extra');
 const Handlebars = require('handlebars');
 const chalk = require('chalk');
 const {
+  sanitizeUserText,
+  escapeMarkdownCell,
+  MAX_PROJECT_NAME,
+  MAX_DESCRIPTION,
+  MAX_CUSTOM_ROLE_DESC,
+} = require('./sanitize');
+const { writeTrackedCommandFile } = require('./command-writer');
+const { securityWorkflowYaml } = require('./security-workflow');
+const {
   DEFAULT_AGENTS,
   OPTIONAL_AGENTS,
   applyTheme,
@@ -21,6 +30,7 @@ const {
   countCommandFiles,
   resolveCommandDirs,
   normalizeTargets,
+  resolveSafeOutputDir,
 } = require('./utils');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -31,6 +41,7 @@ function registerPartials() {
   if (partialsRegistered) return;
   const introPath = path.join(TEMPLATES_DIR, 'partials', 'agent-intro.md.hbs');
   Handlebars.registerPartial('agent-intro', fs.readFileSync(introPath, 'utf8'));
+  Handlebars.registerHelper('md', (value) => escapeMarkdownCell(value));
   partialsRegistered = true;
 }
 
@@ -45,26 +56,49 @@ function loadTemplate(relativePath) {
 
 /**
  * @param {object} answers
- * @param {{ dryRun?: boolean, force?: boolean }} [options]
+ * @param {{ dryRun?: boolean, force?: boolean, forceOverwrite?: boolean, backup?: boolean, isUpdate?: boolean, withSecurityCi?: boolean }} [options]
  */
 async function scaffold(answers, options = {}) {
-  const { dryRun = false, force = false } = options;
-  const outputDir = path.resolve(answers.outputDir || '.');
+  const {
+    dryRun = false,
+    force = false,
+    forceOverwrite = false,
+    backup = false,
+    isUpdate = false,
+    withSecurityCi = false,
+  } = options;
+  const scaffoldSecurityCi = withSecurityCi || Boolean(answers.withSecurityCi);
+  const outputDir = resolveSafeOutputDir(answers.outputDir || '.');
   const theme = answers.theme || 'phoenix';
   const targets = normalizeTargets(answers.targets || 'both');
   const commandDirs = resolveCommandDirs(targets, outputDir);
 
-  validateCustomRoles(answers.customRoles || []);
+  const sanitizedAnswers = {
+    ...answers,
+    projectName: sanitizeUserText(answers.projectName || 'your project', MAX_PROJECT_NAME),
+    projectDescription: sanitizeUserText(answers.projectDescription || ''),
+    githubRepo: sanitizeUserText(answers.githubRepo || '', 500),
+    customRoles: (answers.customRoles || []).map((r) => ({
+      ...r,
+      name: sanitizeUserText(r.name, MAX_PROJECT_NAME),
+      description: sanitizeUserText(r.description, MAX_CUSTOM_ROLE_DESC),
+      character: sanitizeUserText(r.character, MAX_PROJECT_NAME),
+      trait: sanitizeUserText(r.trait, MAX_DESCRIPTION),
+    })),
+  };
 
-  const stack = resolveStack(answers);
-  const conditionalAgents = resolveConditionalAgents(answers);
-  const optionalAgents = resolveOptionalAgents(answers);
-  const allAgents = resolveAllAgents(answers, theme);
+  validateCustomRoles(sanitizedAnswers.customRoles);
+
+  const stack = resolveStack(sanitizedAnswers);
+  const conditionalAgents = resolveConditionalAgents(sanitizedAnswers);
+  const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
+  const allAgents = resolveAllAgents(sanitizedAnswers, theme);
+  const sanitizedCustomRoles = sanitizedAnswers.customRoles;
 
   const baseContext = {
-    projectName: answers.projectName || 'your project',
-    projectDescription: answers.projectDescription || '',
-    githubRepo: answers.githubRepo || '',
+    projectName: sanitizedAnswers.projectName,
+    projectDescription: sanitizedAnswers.projectDescription,
+    githubRepo: sanitizedAnswers.githubRepo,
     frontendStack: stack.frontendStack || 'Not specified',
     backendStack: stack.backendStack || 'Not specified',
     domainExpertise: stack.domainExpertise || 'General software engineering',
@@ -80,6 +114,17 @@ async function scaffold(answers, options = {}) {
 
   const agentDir = path.join(outputDir, '.agent');
   const manifestPath = path.join(outputDir, MANIFEST_FILENAME);
+
+  const existingManifest = !dryRun && (await fs.pathExists(manifestPath))
+    ? await fs.readJson(manifestPath)
+    : null;
+  const commandHashes = { ...(existingManifest?.commandHashes || {}) };
+  const writeOpts = {
+    forceOverwrite,
+    backup,
+    isUpdate: isUpdate || Boolean(existingManifest),
+  };
+  const skippedFiles = [];
 
   if (!dryRun && !force) {
     const exists = await fs.pathExists(agentDir);
@@ -130,6 +175,8 @@ async function scaffold(answers, options = {}) {
     fs.ensureDir(docsRunbooksDir),
   ]);
 
+  const writerParams = { outputDir, commandHashes, options: writeOpts, skipped: skippedFiles };
+
   for (const commandsDir of commandDirs) {
     const commandsRelativePath = path.relative(outputDir, commandsDir).replace(/\\/g, '/');
 
@@ -151,7 +198,12 @@ async function scaffold(answers, options = {}) {
         domainExpertise: agent.customDomainLabel || baseContext.domainExpertise,
       };
       const rendered = tpl(ctx);
-      await fs.writeFile(path.join(commandsDir, `${agent.file}.md`), rendered);
+      const canonicalPath = path.join(commandsDir, `${agent.file}.md`);
+      const { written } = await writeTrackedCommandFile({
+        filePath: canonicalPath,
+        content: rendered,
+        ...writerParams,
+      });
 
       if (agent.command && agent.command !== agent.file) {
         const aliasTpl = loadTemplate('commands/alias.md.hbs');
@@ -162,19 +214,28 @@ async function scaffold(answers, options = {}) {
           aliasDescription: `${agent.role} (alias for /${agent.file})`,
           commandsRelativePath,
         });
-        await fs.writeFile(path.join(commandsDir, `${agent.command}.md`), aliasContent);
+        await writeTrackedCommandFile({
+          filePath: path.join(commandsDir, `${agent.command}.md`),
+          content: aliasContent,
+          ...writerParams,
+        });
       }
 
       const relLabel = path.relative(outputDir, commandsDir).replace(/\\/g, '/');
+      const mark = written ? chalk.green('  ✓ ') : chalk.yellow('  ↷ ');
       process.stdout.write(
-        chalk.green('  ✓ ') +
+        mark +
           chalk.dim(`${relLabel}/${agent.file}.md`) +
-          chalk.cyan(`  (${agent.character})\n`)
+          (written ? chalk.cyan(`  (${agent.character})\n`) : chalk.dim('  (preserved user edits)\n'))
       );
     }
 
     const setupTpl = loadTemplate('commands/setup.md.hbs');
-    await fs.writeFile(path.join(commandsDir, 'setup.md'), setupTpl(baseContext));
+    await writeTrackedCommandFile({
+      filePath: path.join(commandsDir, 'setup.md'),
+      content: setupTpl({ ...baseContext, allAgents }),
+      ...writerParams,
+    });
 
     const catalogCmd = catalogCommandForTheme(theme);
     const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
@@ -183,12 +244,16 @@ async function scaffold(answers, options = {}) {
       defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
       conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
       optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
-      customRoles: answers.customRoles || [],
+      customRoles: sanitizedCustomRoles,
       hasConditionalAgents: conditionalAgents.length > 0,
       hasOptionalAgents: optionalAgents.length > 0,
-      hasCustomRoles: (answers.customRoles || []).length > 0,
+      hasCustomRoles: sanitizedCustomRoles.length > 0,
     };
-    await fs.writeFile(path.join(commandsDir, `${catalogCmd}.md`), catalogTpl(catalogCtx));
+    await writeTrackedCommandFile({
+      filePath: path.join(commandsDir, `${catalogCmd}.md`),
+      content: catalogTpl(catalogCtx),
+      ...writerParams,
+    });
 
     const staleCatalog = catalogCmd === 'help' ? 'lumos.md' : 'help.md';
     const stalePath = path.join(commandsDir, staleCatalog);
@@ -250,18 +315,18 @@ async function scaffold(answers, options = {}) {
       githubRepo: baseContext.githubRepo,
     },
     stacks: {
-      frontend: answers.frontend,
-      backend: answers.backend,
+      frontend: sanitizedAnswers.frontend,
+      backend: sanitizedAnswers.backend,
       domains: stack.domainKeys,
     },
-    optionalRoles: answers.optionalRoles || [],
+    optionalRoles: sanitizedAnswers.optionalRoles || [],
     agents: allAgents.map((a) => ({
       file: a.file,
       role: a.role,
       command: a.command || null,
       character: a.character,
     })),
-    customRoles: (answers.customRoles || []).map((r) => ({
+    customRoles: sanitizedCustomRoles.map((r) => ({
       file: r.file,
       name: r.name,
       command: r.command || null,
@@ -270,8 +335,25 @@ async function scaffold(answers, options = {}) {
       trait: r.trait,
     })),
     commandDirs: baseContext.commandDirs,
+    commandHashes,
+    withSecurityCi: Boolean(scaffoldSecurityCi),
   };
   await fs.writeJson(manifestPath, manifest, { spaces: 2 });
+
+  if (scaffoldSecurityCi) {
+    const workflowDir = path.join(outputDir, '.github', 'workflows');
+    await fs.ensureDir(workflowDir);
+    const workflowPath = path.join(workflowDir, 'security.yml');
+    await fs.writeFile(workflowPath, securityWorkflowYaml(sanitizedAnswers.backend));
+    console.log(chalk.green('  ✓ ') + chalk.dim('.github/workflows/security.yml'));
+  }
+
+  if (skippedFiles.length > 0) {
+    console.log(
+      chalk.yellow(`\n  ↷ Preserved ${skippedFiles.length} user-edited command file(s).`) +
+        chalk.dim(' Use --force-overwrite to replace them.\n')
+    );
+  }
 
   return {
     commandDirs,
@@ -284,6 +366,7 @@ async function scaffold(answers, options = {}) {
     agentCount: countAgents(allAgents),
     commandFileCount: countCommandFiles(allAgents),
     theme,
+    skippedFiles,
   };
 }
 

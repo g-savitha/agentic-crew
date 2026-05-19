@@ -255,12 +255,18 @@ async function runQuestionnaire() {
 
   const totalAgents = countAgents(resolveAllAgents(finalAnswers, theme));
 
+  const withSecurityCi = await confirm({
+    message: 'Add GitHub security workflow (.github/workflows/security.yml)?',
+    initialValue: false,
+  });
+  if (isCancel(withSecurityCi)) { cancel('Cancelled.'); process.exit(0); }
+
   const proceed = await confirm({
     message: `Ready to scaffold ${chalk.bold(finalAnswers.projectName)} with ${totalAgents} agents. Proceed?`,
   });
   if (isCancel(proceed) || !proceed) { cancel('Cancelled.'); process.exit(0); }
 
-  return finalAnswers;
+  return { ...finalAnswers, withSecurityCi: Boolean(withSecurityCi) };
 }
 
 function printPreview(agents, theme) {

@@ -31,7 +31,15 @@ function addInitOptions(cmd) {
     .option('--output-dir <dir>', 'Output directory', '.')
     .option('--yes', 'Skip questionnaire when --name is set')
     .option('--dry-run', 'Print what would be created without writing files')
-    .option('--force', 'Allow scaffolding into an existing .agent/ directory');
+    .option('--force', 'Allow scaffolding into an existing .agent/ directory')
+    .option(
+      '--custom-role <spec>',
+      'Custom role as Name|Description (repeatable)',
+      (value, previous) => [...previous, value],
+      []
+    )
+    .option('--with-security-ci', 'Scaffold .github/workflows/security.yml in the target project')
+    .option('--force-overwrite', 'Replace user-edited command skill files');
 }
 
 addInitOptions(
@@ -47,14 +55,21 @@ addInitOptions(
         }
 
         if (cmd.opts().dryRun) {
-          const result = await scaffold(answers, { dryRun: true });
+          const result = await scaffold(answers, {
+            dryRun: true,
+            withSecurityCi: answers.withSecurityCi,
+          });
           printDryRun(result, answers);
           return;
         }
 
         console.log('\n' + chalk.bold('  Assembling your team...\n'));
 
-        const result = await scaffold(answers, { force: cmd.opts().force });
+        const result = await scaffold(answers, {
+          force: cmd.opts().force,
+          forceOverwrite: cmd.opts().forceOverwrite,
+          withSecurityCi: answers.withSecurityCi,
+        });
         const agents = resolveAllAgents(answers, answers.theme);
         const filesPerDir = countCommandFiles(agents) + 2;
 
@@ -94,9 +109,15 @@ program
   .description('Refresh agent command templates from the installed package')
   .option('--dir <path>', 'Project directory', '.')
   .option('--force', 'Overwrite generated docs/backlog if present')
+  .option('--force-overwrite', 'Replace user-edited command skill files')
+  .option('--backup', 'Backup command files to .agentic-crew.bak/ before updating')
   .action(async (opts) => {
     try {
-      await runUpdate(opts.dir, { force: opts.force });
+      await runUpdate(opts.dir, {
+        force: opts.force,
+        forceOverwrite: opts.forceOverwrite,
+        backup: opts.backup,
+      });
     } catch (err) {
       console.error(chalk.red('\n  Error: ') + err.message);
       process.exit(1);

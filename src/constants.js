@@ -1,4 +1,4 @@
-const PACKAGE_VERSION = '0.2.0';
+const { version: PACKAGE_VERSION } = require('../package.json');
 
 const THEMES = ['phoenix', 'professional'];
 

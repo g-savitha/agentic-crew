@@ -1,6 +1,6 @@
 {
   "name": "agentic-crew",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Scaffold a full AI engineering team into any project — personas, wired and ready in 60 seconds.",
   "main": "src/index.js",
   "bin": {
@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "test": "node --test test/**/*.test.js",
-    "test:smoke": "node bin/cli.js init --dry-run --yes --name smoke --frontend react --backend go --domain ml,data"
+    "test:smoke": "node bin/cli.js init --dry-run --yes --name smoke --frontend react --backend go --domain ml,data",
+    "prepublishOnly": "npm test"
   },
   "keywords": [
     "ai-agents",

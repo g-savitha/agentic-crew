@@ -7,7 +7,7 @@ const { MANIFEST_FILENAME } = require('./constants');
 /**
  * Refresh agent command templates from the installed package without wiping .agent state.
  * @param {string} [projectDir]
- * @param {{ force?: boolean }} [options]
+ * @param {{ force?: boolean, forceOverwrite?: boolean, backup?: boolean }} [options]
  */
 async function runUpdate(projectDir = '.', options = {}) {
   const root = path.resolve(projectDir);
@@ -33,7 +33,7 @@ async function runUpdate(projectDir = '.', options = {}) {
       file: r.file,
       command: r.command,
       character: r.character || r.name,
-      trait: 'Custom',
+      trait: r.trait || 'Custom',
       description: r.description || '',
     })),
     outputDir: root,
@@ -43,12 +43,26 @@ async function runUpdate(projectDir = '.', options = {}) {
 
   console.log(chalk.bold('\n  Updating agent skill files from package templates...\n'));
 
-  await scaffold(answers, { force: true });
+  const result = await scaffold(answers, {
+    force: true,
+    isUpdate: true,
+    forceOverwrite: options.forceOverwrite || false,
+    backup: options.backup || false,
+    withSecurityCi: manifest.withSecurityCi || false,
+  });
 
   console.log(chalk.green('\n  ✓ Command templates updated.'));
-  console.log(chalk.dim('  .agent/messages and status files were preserved (only missing files created).\n'));
+  if (result.skippedFiles?.length) {
+    console.log(
+      chalk.dim(
+        `  Preserved ${result.skippedFiles.length} user-edited file(s). Use --force-overwrite to replace.\n`
+      )
+    );
+  } else {
+    console.log(chalk.dim('  .agent/messages and status files were preserved (only missing files created).\n'));
+  }
 
-  return { manifestPath };
+  return { manifestPath, skippedFiles: result.skippedFiles || [] };
 }
 
 module.exports = { runUpdate };

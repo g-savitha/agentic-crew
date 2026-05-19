@@ -12,7 +12,7 @@ List every available agent command, character personas, and the communication pr
 
 | Character | Command | Alias | Role | What they do |
 |-----------|---------|-------|------|--------------|
-{{#each defaultAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{{why}}} |
+{{#each defaultAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{md why}} |
 {{/each}}
 
 ## Stack Agents
@@ -20,7 +20,7 @@ List every available agent command, character personas, and the communication pr
 {{#if hasConditionalAgents}}
 | Character | Command | Alias | Role | What they do |
 |-----------|---------|-------|------|--------------|
-{{#each conditionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{{why}}} |
+{{#each conditionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{md why}} |
 {{/each}}
 {{else}}
 *(None selected — you chose no frontend, backend, or specialized domain.)*
@@ -31,7 +31,7 @@ List every available agent command, character personas, and the communication pr
 
 | Character | Command | Alias | Role | What they do |
 |-----------|---------|-------|------|--------------|
-{{#each optionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{{why}}} |
+{{#each optionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{md why}} |
 {{/each}}
 {{/if}}
 
@@ -40,7 +40,7 @@ List every available agent command, character personas, and the communication pr
 
 | Character | Command | Alias | Role | Description |
 |-----------|---------|-------|------|-------------|
-{{#each customRoles}}| {{character}} | `/{{command}}` | `/{{file}}` | {{name}} | {{{description}}} |
+{{#each customRoles}}| {{character}} | `/{{command}}` | `/{{file}}` | {{name}} | {{md description}} |
 {{/each}}
 {{/if}}
 

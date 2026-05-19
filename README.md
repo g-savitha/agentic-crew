@@ -3,7 +3,8 @@
 > Scaffold a full AI engineering team into any project — personas, wired and ready in 60 seconds.
 
 ```bash
-npx agentic-crew init
+# Pin the version — do not use bare `npx agentic-crew` in production (supply-chain risk)
+npx agentic-crew@latest init
 ```
 
 ---
@@ -19,11 +20,11 @@ You bring the ideas. The team executes.
 ## Quick Start
 
 ```bash
-# Interactive (recommended)
-npx agentic-crew init
+# Interactive (recommended) — pin version in scripts/CI
+npx agentic-crew@0.2.1 init
 
 # Non-interactive
-npx agentic-crew init --yes \
+npx agentic-crew@0.2.1 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
@@ -38,8 +39,11 @@ npx agentic-crew init --dry-run --yes --name demo --frontend react --backend nod
 # Validate an existing install
 npx agentic-crew doctor
 
-# Refresh command templates after upgrading the package
-npx agentic-crew update
+# Refresh command templates (preserves user-edited skill files)
+npx agentic-crew@0.2.1 update
+
+# Replace user-edited skill files with latest templates
+npx agentic-crew@0.2.1 update --force-overwrite
 ```
 
 ---
@@ -50,7 +54,7 @@ npx agentic-crew update
 |---------|-------------|
 | `agentic-crew init` | Scaffold the team (interactive or `--yes` with flags) |
 | `agentic-crew doctor` | Validate `.agent/`, manifest, and skill files |
-| `agentic-crew update` | Re-render skill templates from the installed package |
+| `agentic-crew update` | Re-render skill templates (preserves user edits unless `--force-overwrite`) |
 
 ### `init` options
 
@@ -69,7 +73,19 @@ npx agentic-crew update
 | `--output-dir` | Directory to scaffold into (default `.`) |
 | `--dry-run` | Show planned output without writing |
 | `--force` | Allow init when `.agent/` already exists |
+| `--force-overwrite` | Replace user-edited command skill files |
+| `--custom-role` | `Name|Description` — repeatable custom role |
+| `--with-security-ci` | Add `.github/workflows/security.yml` to the target project |
 | `--yes` | Skip questionnaire (requires `--name`) |
+
+### `update` options
+
+| Flag | Description |
+|------|-------------|
+| `--dir` | Project directory (default `.`) |
+| `--force` | Overwrite generated docs/backlog |
+| `--force-overwrite` | Replace user-edited command skill files |
+| `--backup` | Copy prior command files to `.agentic-crew.bak/` |
 
 ---
 
@@ -123,7 +139,8 @@ With `--theme professional`, only role-based commands (e.g. `/manager`) are gene
 
 ```
 your-project/
-  .agentic-crew.json      ← manifest (version, agents, stacks)
+  .agentic-crew.json      ← manifest (version, agents, stacks, file hashes)
+  .github/workflows/      ← optional security.yml (--with-security-ci)
   .claude/commands/       ← Claude Code skill files
   .cursor/commands/       ← Cursor skill files (when --target both)
   .agent/
@@ -164,6 +181,16 @@ Use `/lumos` (Phoenix theme) or `/help` (professional theme) to list every comma
 
 - Node.js ≥ 18
 - An agentic IDE that supports slash-command skill files (Claude Code, Cursor, etc.)
+
+---
+
+## Security
+
+- **Pin installs**: use `npx agentic-crew@<version>` or add as a devDependency with a lockfile
+- **Review output**: inspect generated `.cursor/commands/` / `.claude/commands/` before committing
+- **`doctor`**: validates manifest version, aliases, and required paths
+- **`update`**: preserves locally edited skill files unless you pass `--force-overwrite`
+- See [SECURITY.md](SECURITY.md) for vulnerability reporting
 
 ---
 
