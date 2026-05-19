@@ -1,26 +1,33 @@
 const {
   intro,
-  outro,
   text,
   select,
+  multiselect,
   confirm,
   group,
   cancel,
   isCancel,
-  spinner,
 } = require('@clack/prompts');
 const chalk = require('chalk');
 const { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS } = require('./stacks');
-const { DEFAULT_AGENTS, RESERVE_CHARACTERS, resolveActiveAgents } = require('./agents');
+const {
+  DEFAULT_AGENTS,
+  RESERVE_CHARACTERS,
+  resolveConditionalAgents,
+  resolveAllAgents,
+  buildReservedSlugs,
+  validateCustomRoles,
+} = require('./agents');
+const { countAgents, assertNoCollision, slugify } = require('./utils');
+const { THEMES } = require('./constants');
 
 async function runQuestionnaire() {
   intro(
     chalk.bold('\n  agentic-crew') +
-    chalk.dim(' — your AI engineering team, assembled in 60 seconds\n') +
-    chalk.dim('  Works with any agentic IDE · Order of the Phoenix Edition\n')
+      chalk.dim(' — your AI engineering team, assembled in 60 seconds\n') +
+      chalk.dim('  Works with Claude Code, Cursor, and other agentic IDEs\n')
   );
 
-  // ── Project details ──────────────────────────────────────────────
   const project = await group(
     {
       name: () =>
@@ -29,13 +36,11 @@ async function runQuestionnaire() {
           placeholder: 'my-app',
           validate: (v) => (!v.trim() ? 'Project name is required.' : undefined),
         }),
-
       description: () =>
         text({
           message: 'One-line description of your project?',
           placeholder: 'A high-performance real-time collaboration tool',
         }),
-
       repo: () =>
         text({
           message: 'GitHub repository URL?',
@@ -45,102 +50,96 @@ async function runQuestionnaire() {
     { onCancel: () => { cancel('Cancelled.'); process.exit(0); } }
   );
 
-  // ── Tech stack ───────────────────────────────────────────────────
   const frontend = await select({
     message: 'Frontend stack?',
-    options: FRONTEND_STACKS.map((s) => ({
-      value: s.value,
-      label: s.label,
-      hint: s.hint,
-    })),
+    options: FRONTEND_STACKS.map((s) => ({ value: s.value, label: s.label, hint: s.hint })),
   });
   if (isCancel(frontend)) { cancel('Cancelled.'); process.exit(0); }
 
-  let frontendCustom = '';
+  let frontendResolved = frontend;
   if (frontend === 'other') {
-    frontendCustom = await text({ message: 'Describe your frontend stack:' });
-    if (isCancel(frontendCustom)) { cancel('Cancelled.'); process.exit(0); }
+    const custom = await text({ message: 'Describe your frontend stack:' });
+    if (isCancel(custom)) { cancel('Cancelled.'); process.exit(0); }
+    frontendResolved = custom.trim();
   }
 
   const backend = await select({
     message: 'Backend stack?',
-    options: BACKEND_STACKS.map((s) => ({
-      value: s.value,
-      label: s.label,
-      hint: s.hint,
-    })),
+    options: BACKEND_STACKS.map((s) => ({ value: s.value, label: s.label, hint: s.hint })),
   });
   if (isCancel(backend)) { cancel('Cancelled.'); process.exit(0); }
 
-  let backendCustom = '';
+  let backendResolved = backend;
   if (backend === 'other') {
-    backendCustom = await text({ message: 'Describe your backend stack:' });
-    if (isCancel(backendCustom)) { cancel('Cancelled.'); process.exit(0); }
+    const custom = await text({ message: 'Describe your backend stack:' });
+    if (isCancel(custom)) { cancel('Cancelled.'); process.exit(0); }
+    backendResolved = custom.trim();
   }
 
-  // ── Domain expert ────────────────────────────────────────────────
-  const domain = await select({
-    message: 'Does your project have a specialized technical domain?',
-    options: DOMAINS.map((d) => ({
-      value: d.value,
-      label: d.label,
-      hint: d.hint,
-    })),
+  const domainChoices = await multiselect({
+    message: 'Specialized technical domains? (Space to toggle, Enter to confirm)',
+    options: [
+      ...DOMAINS.map((d) => ({ value: d.value, label: d.label, hint: d.hint })),
+    ],
+    required: false,
   });
-  if (isCancel(domain)) { cancel('Cancelled.'); process.exit(0); }
+  if (isCancel(domainChoices)) { cancel('Cancelled.'); process.exit(0); }
 
-  let domainCustom = '';
-  if (domain === 'other') {
-    domainCustom = await text({ message: 'Describe your technical domain:' });
-    if (isCancel(domainCustom)) { cancel('Cancelled.'); process.exit(0); }
+  const domains = [...(domainChoices || [])];
+  if (domains.includes('other')) {
+    const custom = await text({ message: 'Describe your technical domain:' });
+    if (isCancel(custom)) { cancel('Cancelled.'); process.exit(0); }
+    domains.splice(domains.indexOf('other'), 1, custom.trim());
   }
 
-  // ── Custom roles ─────────────────────────────────────────────────
-  const customRoles = [];
-  // Shuffle reserve pool so each run gets a different order, no repeats until pool exhausted
-  const reservePool = [...RESERVE_CHARACTERS].sort(() => Math.random() - 0.5);
+  const theme = await select({
+    message: 'Persona theme?',
+    options: [
+      { value: 'phoenix', label: 'Order of the Phoenix', hint: 'Harry Potter character names + role aliases' },
+      { value: 'professional', label: 'Professional', hint: 'Role-based commands only (enterprise-friendly)' },
+    ],
+  });
+  if (isCancel(theme)) { cancel('Cancelled.'); process.exit(0); }
+  if (!THEMES.includes(theme)) { cancel('Cancelled.'); process.exit(0); }
 
-  // Show full roster: defaults + what was just selected, so users know what they're getting
-  const conditionalAgents = resolveActiveAgents({ frontend, backend, domain });
+  const target = await select({
+    message: 'IDE command directories?',
+    options: [
+      { value: 'both', label: 'Claude + Cursor', hint: '.claude/commands and .cursor/commands' },
+      { value: 'claude', label: 'Claude Code only' },
+      { value: 'cursor', label: 'Cursor only' },
+    ],
+  });
+  if (isCancel(target)) { cancel('Cancelled.'); process.exit(0); }
 
-  const maxChar = Math.max(...DEFAULT_AGENTS.map((a) => a.character.length));
-  const maxRole = Math.max(...DEFAULT_AGENTS.map((a) => a.role.length));
+  const draftAnswers = {
+    frontend: frontendResolved,
+    backend: backendResolved,
+    domains,
+    theme,
+    customRoles: [],
+  };
+  const conditionalAgents = resolveConditionalAgents(draftAnswers);
+  const previewAgents = resolveAllAgents(draftAnswers, theme);
 
-  const maxCmd = Math.max(...DEFAULT_AGENTS.map((a) => (a.command || a.file).length));
-  console.log('\n' + chalk.bold('  Your order — always included:\n'));
-  for (const a of DEFAULT_AGENTS) {
-    const cmd = a.command || a.file;
-    console.log(
-      '  ' + chalk.cyan(a.character.padEnd(maxChar + 2)) +
-      chalk.dim(a.role.padEnd(maxRole + 2)) +
-      chalk.white(('/' + cmd).padEnd(maxCmd + 3)) +
-      chalk.dim(`or /${a.file}`)
-    );
-  }
-
+  console.log('\n' + chalk.bold(`  Your team — ${countAgents(previewAgents)} agents:\n`));
+  printPreview(DEFAULT_AGENTS, theme);
   if (conditionalAgents.length > 0) {
-    console.log('\n' + chalk.bold('  Added for your stack:\n'));
-    const maxCondChar = Math.max(...conditionalAgents.map((a) => a.character.length));
-    const maxCondRole = Math.max(...conditionalAgents.map((a) => a.role.length));
-    const maxCondCmd = Math.max(...conditionalAgents.map((a) => (a.command || a.file).length));
-    for (const a of conditionalAgents) {
-      const cmd = a.command || a.file;
-      console.log(
-        '  ' + chalk.cyan(a.character.padEnd(maxCondChar + 2)) +
-        chalk.dim(a.role.padEnd(maxCondRole + 2)) +
-        chalk.white(('/' + cmd).padEnd(maxCondCmd + 3)) +
-        chalk.dim(`or /${a.file}`)
-      );
-    }
+    console.log(chalk.dim('\n  Added for your stack:\n'));
+    printPreview(conditionalAgents, theme);
   }
   console.log();
+
+  const customRoles = [];
+  const reservePool = [...RESERVE_CHARACTERS].sort(() => Math.random() - 0.5);
+  const reserved = buildReservedSlugs();
 
   let addMore = await confirm({ message: 'Add a custom role on top of these?' });
   if (isCancel(addMore)) { cancel('Cancelled.'); process.exit(0); }
 
   while (addMore) {
     const roleName = await text({
-      message: 'Role name? (e.g., "Data Engineer", "ML Researcher")',
+      message: 'Role name? (e.g., "Data Engineer")',
       validate: (v) => (!v.trim() ? 'Role name is required.' : undefined),
     });
     if (isCancel(roleName)) { cancel('Cancelled.'); process.exit(0); }
@@ -151,33 +150,62 @@ async function runQuestionnaire() {
     });
     if (isCancel(roleDescription)) { cancel('Cancelled.'); process.exit(0); }
 
-    if (reservePool.length === 0) reservePool.push(...RESERVE_CHARACTERS.sort(() => Math.random() - 0.5));
-    const suggested = reservePool.shift();
+    const fileSlug = slugify(roleName);
+    try {
+      assertNoCollision(reserved, fileSlug, undefined, `Custom role "${roleName}"`);
+    } catch (err) {
+      console.log(chalk.red(`  ${err.message}`));
+      continue;
+    }
 
-    const useCharacter = await confirm({
-      message: `Assign ${chalk.bold(suggested.character)} as the persona for ${chalk.bold(roleName)}?`,
-    });
-    if (isCancel(useCharacter)) { cancel('Cancelled.'); process.exit(0); }
+    if (reservePool.length === 0) {
+      reservePool.push(...RESERVE_CHARACTERS.sort(() => Math.random() - 0.5));
+    }
+    const suggested = reservePool.shift();
 
     let character = suggested.character;
     let trait = suggested.trait;
-
     let command = suggested.command;
-    if (!useCharacter) {
-      character = await text({ message: 'Custom persona name for this role?' });
-      if (isCancel(character)) { cancel('Cancelled.'); process.exit(0); }
-      trait = 'Custom';
-      command = character.trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
+
+    if (theme === 'phoenix') {
+      const useCharacter = await confirm({
+        message: `Assign ${chalk.bold(suggested.character)} as the persona for ${chalk.bold(roleName)}?`,
+      });
+      if (isCancel(useCharacter)) { cancel('Cancelled.'); process.exit(0); }
+
+      if (!useCharacter) {
+        character = await text({ message: 'Custom persona name for this role?' });
+        if (isCancel(character)) { cancel('Cancelled.'); process.exit(0); }
+        trait = 'Custom';
+        command = slugify(character.split(/\s+/)[0]);
+      }
+      try {
+        assertNoCollision(reserved, fileSlug, command, `Custom role "${roleName}"`);
+      } catch (err) {
+        console.log(chalk.red(`  ${err.message}`));
+        continue;
+      }
+    } else {
+      character = roleName;
+      command = undefined;
+      trait = `${roleName} — specialist`;
     }
 
-    const fileSlug = roleName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    customRoles.push({ name: roleName, description: roleDescription, character, trait, command, file: fileSlug });
+    customRoles.push({
+      name: roleName,
+      description: roleDescription,
+      character,
+      trait,
+      command,
+      file: fileSlug,
+    });
 
     addMore = await confirm({ message: 'Add another custom role?' });
     if (isCancel(addMore)) { cancel('Cancelled.'); process.exit(0); }
   }
 
-  // ── Output directory ─────────────────────────────────────────────
+  validateCustomRoles(customRoles);
+
   const outputDir = await text({
     message: 'Scaffold into which directory?',
     placeholder: '. (current directory)',
@@ -185,22 +213,45 @@ async function runQuestionnaire() {
   });
   if (isCancel(outputDir)) { cancel('Cancelled.'); process.exit(0); }
 
-  // ── Confirm ───────────────────────────────────────────────────────
-  const proceed = await confirm({
-    message: `Ready to scaffold ${chalk.bold(project.name || 'your project')} with ${18 + customRoles.length} agents. Proceed?`,
-  });
-  if (isCancel(proceed) || !proceed) { cancel('Cancelled.'); process.exit(0); }
-
-  return {
+  const finalAnswers = {
     projectName: (project.name || '').trim(),
     projectDescription: (project.description || '').trim(),
     githubRepo: (project.repo || '').trim(),
-    frontend: frontend === 'other' ? frontendCustom : frontend,
-    backend: backend === 'other' ? backendCustom : backend,
-    domain: domain === 'other' ? domainCustom : domain,
+    frontend: frontendResolved,
+    backend: backendResolved,
+    domains,
+    domain: domains[0] || 'none',
     customRoles,
     outputDir: (outputDir || '.').trim() || '.',
+    theme,
+    targets: target,
   };
+
+  const totalAgents = countAgents(resolveAllAgents(finalAnswers, theme));
+
+  const proceed = await confirm({
+    message: `Ready to scaffold ${chalk.bold(finalAnswers.projectName)} with ${totalAgents} agents. Proceed?`,
+  });
+  if (isCancel(proceed) || !proceed) { cancel('Cancelled.'); process.exit(0); }
+
+  return finalAnswers;
+}
+
+function printPreview(agents, theme) {
+  const maxChar = Math.max(...agents.map((a) => (theme === 'professional' ? a.role : a.character).length));
+  const maxRole = Math.max(...agents.map((a) => a.role.length));
+  const maxCmd = Math.max(...agents.map((a) => ((theme === 'professional' ? a.file : a.command) || a.file).length));
+  for (const a of agents) {
+    const label = theme === 'professional' ? a.role : a.character;
+    const cmd = theme === 'professional' ? a.file : a.command || a.file;
+    console.log(
+      '  ' +
+        chalk.cyan(label.padEnd(maxChar + 2)) +
+        chalk.dim(a.role.padEnd(maxRole + 2)) +
+        chalk.white(('/' + cmd).padEnd(maxCmd + 3)) +
+        chalk.dim(`or /${a.file}`)
+    );
+  }
 }
 
 module.exports = { runQuestionnaire };

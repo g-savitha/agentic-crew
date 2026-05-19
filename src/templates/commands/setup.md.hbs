@@ -12,35 +12,35 @@ You are the **setup utility** for the **{{projectName}}** agent team. When invok
 
 $ARGUMENTS
 
+## Agents in This Project
+
+The following agents must have status and message files (from `.agentic-crew.json`):
+
+{{#each allAgents}}- `{{file}}` — {{role}}
+{{/each}}
+
 ## What You Do
 
-**Step 1 — Create `.claude/commands/` structure** (if not present):
-Verify all agent skill files exist. List any missing files.
+**Step 1 — Verify command directories**:
+- `{{#each commandDirs}}{{{this}}}{{#unless @last}}`, `{{/unless}}{{/each}}`
+- List any missing agent skill files; do not overwrite existing skill content.
 
 **Step 2 — Create `.agent/` structure**:
 ```bash
 mkdir -p .agent/status .agent/messages .agent/backlog .agent/reports
 ```
 
-**Step 3 — Create status files** (for each agent that doesn't have one):
+**Step 3 — Create status and message files** (only if missing):
 ```bash
-for agent in manager scrum po staff-engineer backend architect qa devops security networking documentation researcher release-manager marketing perf sre tpm; do
-  [ -f ".agent/status/${agent}.md" ] || echo "---\nagent: ${agent}\nstatus: Idle\n---" > ".agent/status/${agent}.md"
-  [ -f ".agent/messages/${agent}.md" ] || echo "---\n---" > ".agent/messages/${agent}.md"
-done
+{{#each allAgents}}[ -f ".agent/status/{{file}}.md" ] || printf '%s\n' "---" "agent: {{file}}" "status: Idle" "---" > ".agent/status/{{file}}.md"
+[ -f ".agent/messages/{{file}}.md" ] || printf '%s\n' "---" "---" > ".agent/messages/{{file}}.md"
+{{/each}}
 ```
 
-**Step 4 — Create backlog** (if not present):
+**Step 4 — Create backlog and heartbeat** (if not present):
 ```bash
-[ -f ".agent/backlog/tasks.md" ] || cat > .agent/backlog/tasks.md << 'EOF'
-# {{projectName}} — Task Backlog
-
-## Backlog
-
-## In Progress
-
-## Done
-EOF
+[ -f ".agent/backlog/tasks.md" ] || echo "(see scaffolded tasks.md)" > .agent/backlog/tasks.md
+[ -f ".agent/reports/heartbeat.md" ] || printf '%s\n' "---" "updated: never" "---" > .agent/reports/heartbeat.md
 ```
 
 **Step 5 — Create `docs/` structure**:
@@ -51,8 +51,7 @@ mkdir -p docs/wiki docs/adr docs/runbooks
 **Step 6 — Report what was created**:
 List every file and directory created. Confirm the structure is complete.
 
-**Step 7 — Write a welcome message to Manager**:
-Write to `.agent/messages/manager.md`:
+**Step 7 — Write a welcome message to Manager** (append to `.agent/messages/manager.md`):
 ```
 ## Agent team bootstrapped (from Setup, <date>)
 
@@ -64,5 +63,5 @@ Next step: CEO should brief the team via /manager.
 ## What NOT to Do
 
 - Do not overwrite existing status or message files (they may contain important state)
-- Do not modify `.claude/commands/` files (skill definitions are the source of truth)
+- Do not modify command skill files in `{{#each commandDirs}}{{{this}}}{{#unless @last}}` or `{{/unless}}{{/each}}` (skill definitions are the source of truth)
 - Do not create content in `docs/` beyond the directory structure (Documentation owns that)

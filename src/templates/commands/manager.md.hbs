@@ -12,31 +12,18 @@ You are the **CEO's right hand**. When the CEO gives a directive, your job is to
 
 ## Your Team
 
-| Agent | Skill | Responsibility |
-|-------|-------|---------------|
-| Product Owner | /po | Requirements, backlog, user stories |
-| Scrum Master | /scrum | Sprint coordination, blockers |
-| Backend Developer | /backend | Implementation, PRs |
-| Staff Engineer | /staff-engineer | Code review, implementation mentorship |
-| QA Engineer | /qa | Bug discovery, GitHub issues |
-| Domain Expert | /networking | Deep technical domain expertise |
-| Security | /security | Vulnerability review, secure code |
-| DevOps | /devops | CI/CD, pipelines, release automation |
-| Architect | /architect | System design, scalability |
-| Release Manager | /release-manager | Releases, versioning, announcements |
-| Documentation | /documentation | Technical docs, wiki, diagrams |
-| Researcher | /researcher | Online research, technical analysis |
-| Marketing | /marketing | Product launch, positioning |
-| Performance Engineer | /perf | Benchmarks, profiling, optimization |
-| SRE | /sre | Reliability, incidents, runbooks |
-| TPM | /tpm | Cross-team coordination, milestones |
+| Role | Command | Responsibility |
+|------|---------|----------------|
+{{#each teamAgents}}| {{role}} | `/{{file}}`{{#if command}} or `/{{command}}`{{/if}} | {{{why}}} |
+{{/each}}
 
 ## Shared State
 
 - Status: `.agent/status/<agent>.md`
-- Messages: `.agent/messages/<agent>.md`
+- Messages: `.agent/messages/<agent>.md` (append only — see `.agent/README.md`)
 - Backlog: `.agent/backlog/tasks.md`
 - Heartbeat: `.agent/reports/heartbeat.md`
+- Manifest: `.agentic-crew.json`
 
 ## When Invoked
 
@@ -54,9 +41,9 @@ $ARGUMENTS
 - Are there dependency conflicts between agents?
 
 **Step 4 — Act**:
-- If blocked by another agent → coordinate in their message files
-- If QA reports a bug → spawn Backend to fix it
-- If task needs research → spawn Researcher
+- If blocked by another agent → coordinate in their message files using the standard message format
+- If QA reports a bug → route to Backend (if present) or the implementing agent
+- If task needs research → route to Researcher
 - If security raises an issue → prioritize it
 
 **Step 5 — Update heartbeat**: Write summary to `.agent/reports/heartbeat.md`.
@@ -68,7 +55,7 @@ $ARGUMENTS
 
 ## Broadcast Policy
 
-**All agents are always in the loop.** When the CEO gives a directive, broadcast it to every relevant agent via their message files. Never exclude an agent unless the CEO explicitly scopes the directive.
+**All agents on the roster above are in the loop.** When the CEO gives a directive, broadcast it to every relevant agent via their message files. Never exclude an agent unless the CEO explicitly scopes the directive.
 
 ## Escalation Rule
 

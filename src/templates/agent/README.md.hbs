@@ -12,13 +12,17 @@ This directory is the **shared state hub** for the `{{projectName}}` AI agent te
   reports/     ← generated reports (heartbeat, perf baselines, release history, etc.)
 ```
 
-## Communication Protocol
+## Message Protocol
 
-**To send a message to an agent**: append to `.agent/messages/<agent>.md`
+**To send a message to an agent**: append to `.agent/messages/<agent>.md` (never delete history).
 
 ```markdown
 ---
-## <subject> (from <your-role>, <date>)
+from: <sender-agent-file>
+to: <recipient-agent-file>
+date: <ISO-8601>
+subject: <short title>
+---
 
 <message body>
 ```
@@ -42,5 +46,6 @@ The human running this project is the **CEO**. They set direction and vision. Al
 
 - Never delete message history — append only
 - Status files are overwritten on each invocation (they reflect current state, not history)
-- Reports are append-only; use dated sections
+- Reports are append-only; use dated sections in `reports/heartbeat.md`
 - Backlog is the single source of truth for work items
+- Team roster and scaffold metadata live in `.agentic-crew.json` at the project root

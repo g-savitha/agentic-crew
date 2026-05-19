@@ -21,7 +21,6 @@ const BACKEND_STACKS = [
 ];
 
 const DOMAINS = [
-  { value: 'none', label: 'No specialized domain' },
   { value: 'networking', label: 'Networking / Protocols', hint: 'TCP, UDP, QUIC, WebSockets, gRPC' },
   { value: 'ml', label: 'Machine Learning / AI', hint: 'PyTorch, TensorFlow, LLMs, embeddings' },
   { value: 'data', label: 'Databases / Data Engineering', hint: 'SQL, NoSQL, streaming, ETL' },
@@ -32,7 +31,6 @@ const DOMAINS = [
   { value: 'other', label: 'Other (specify)' },
 ];
 
-// Human-readable stack descriptions for use in agent templates
 const STACK_DESCRIPTIONS = {
   frontend: {
     none: null,
@@ -64,4 +62,43 @@ const STACK_DESCRIPTIONS = {
   },
 };
 
-module.exports = { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS, STACK_DESCRIPTIONS };
+const { normalizeDomains } = require('./utils');
+const { KNOWN_DOMAIN_KEYS } = require('./agents');
+
+/**
+ * @param {object} answers
+ */
+function resolveStack(answers) {
+  const feKey = answers.frontend;
+  const beKey = answers.backend;
+  const fe = STACK_DESCRIPTIONS.frontend[feKey] || (feKey && feKey !== 'none' ? feKey : null);
+  const be = STACK_DESCRIPTIONS.backend[beKey] || (beKey && beKey !== 'none' ? beKey : null);
+
+  const domainKeys = normalizeDomains(answers.domains ?? answers.domain);
+  const domainLabels = domainKeys.map((key) => {
+    if (STACK_DESCRIPTIONS.domain[key]) return STACK_DESCRIPTIONS.domain[key];
+    if (KNOWN_DOMAIN_KEYS.has(key)) return STACK_DESCRIPTIONS.domain[key];
+    return key;
+  });
+
+  const domainExpertise =
+    domainLabels.length > 0 ? domainLabels.join('; ') : null;
+
+  return {
+    frontendStack: fe,
+    backendStack: be,
+    domainExpertise,
+    domainKeys,
+    hasFrontend: !!fe,
+    hasBackend: !!be,
+    hasDomain: domainLabels.length > 0,
+  };
+}
+
+module.exports = {
+  FRONTEND_STACKS,
+  BACKEND_STACKS,
+  DOMAINS,
+  STACK_DESCRIPTIONS,
+  resolveStack,
+};
