@@ -9,6 +9,7 @@ const FRONTEND_STACKS = [
 ];
 
 const BACKEND_STACKS = [
+  { value: 'none', label: 'None / Not applicable' },
   { value: 'go', label: 'Go', hint: 'cobra, chi, gin, echo' },
   { value: 'python', label: 'Python', hint: 'FastAPI / Django / Flask' },
   { value: 'nodejs', label: 'Node.js', hint: 'Express / Fastify / NestJS' },
@@ -42,6 +43,7 @@ const STACK_DESCRIPTIONS = {
     angular: 'Angular (TypeScript)',
   },
   backend: {
+    none: null,
     go: 'Go',
     python: 'Python',
     nodejs: 'Node.js',

@@ -17,7 +17,7 @@ async function runQuestionnaire() {
   intro(
     chalk.bold('\n  agentic-crew') +
     chalk.dim(' — your AI engineering team, assembled in 60 seconds\n') +
-    chalk.dim('  Powered by Claude Code · Order of the Phoenix Edition\n')
+    chalk.dim('  Works with any agentic IDE · Order of the Phoenix Edition\n')
   );
 
   // ── Project details ──────────────────────────────────────────────
@@ -80,7 +80,7 @@ async function runQuestionnaire() {
 
   // ── Domain expert ────────────────────────────────────────────────
   const domain = await select({
-    message: 'Specialized technical domain? (shapes the /networking agent)',
+    message: 'Does your project have a specialized technical domain?',
     options: DOMAINS.map((d) => ({
       value: d.value,
       label: d.label,

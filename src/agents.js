@@ -3,10 +3,10 @@ const DEFAULT_AGENTS = [
   {
     file: 'manager',
     role: 'Engineering Manager',
-    character: 'Hermione Granger',
-    command: 'hermione',
-    trait: 'Brightest Witch of Her Age',
-    why: 'Organizes the entire team with encyclopedic knowledge and relentless drive — never lets a directive fall through the cracks',
+    character: 'Albus Dumbledore',
+    command: 'dumbledore',
+    trait: 'Headmaster of Hogwarts',
+    why: 'Leads with wisdom and vision — unites every specialist toward the mission and never lets a directive fall through the cracks',
   },
   {
     file: 'scrum',
@@ -19,18 +19,18 @@ const DEFAULT_AGENTS = [
   {
     file: 'po',
     role: 'Product Owner',
-    character: 'Ginny Weasley',
-    command: 'ginny',
-    trait: 'Bats-Bogey Hex champion',
-    why: 'Sharp, decisive — translates CEO vision into crystal-clear requirements the whole order can execute',
+    character: 'Draco Malfoy',
+    command: 'draco',
+    trait: 'Slytherin Prefect',
+    why: 'Ambitious and exacting — translates CEO vision into requirements with competitive precision; never lets a story slip',
   },
   {
     file: 'staff-engineer',
     role: 'Staff Engineer',
-    character: 'Albus Dumbledore',
-    command: 'dumbledore',
-    trait: 'Master of the Elder Wand',
-    why: 'The wisest voice in every design decision — the gold standard of craft; reviews all code with quiet authority',
+    character: 'Hermione Granger',
+    command: 'hermione',
+    trait: 'Brightest Witch of Her Age',
+    why: 'The gold standard of craft — reviews all code with encyclopedic knowledge and relentless precision',
   },
   {
     file: 'architect',
@@ -67,10 +67,10 @@ const DEFAULT_AGENTS = [
   {
     file: 'documentation',
     role: 'Documentation Engineer',
-    character: 'Percy Weasley',
-    command: 'percy',
-    trait: 'Head Boy, Ministry of Magic',
-    why: 'Keeps every protocol documented and up to date — the most thorough record-keeper in the order',
+    character: 'Cedric Diggory',
+    command: 'cedric',
+    trait: 'Hufflepuff Triwizard Champion',
+    why: 'Precise, fair, and thorough — the most trustworthy chronicler in the order',
   },
   {
     file: 'researcher',
@@ -115,10 +115,10 @@ const DEFAULT_AGENTS = [
   {
     file: 'tpm',
     role: 'Technical Program Manager',
-    character: 'Kingsley Shacklebolt',
-    command: 'kingsley',
-    trait: 'Minister for Magic',
-    why: 'Calm under pressure — coordinates dependencies and milestones across the entire order',
+    character: 'Voldemort',
+    command: 'voldemort',
+    trait: 'He Who Must Not Be Named',
+    why: 'Sees all — coordinates dependencies, milestones, and risk across the entire order with relentless precision',
   },
 ];
 
@@ -128,20 +128,20 @@ const CONDITIONAL_AGENTS = {
   frontend: {
     file: 'frontend',
     role: 'Frontend Developer',
-    character: 'Fleur Delacour',
-    command: 'fleur',
-    trait: 'Triwizard Champion',
-    why: 'Elegant precision — interfaces as refined as a Beauxbatons champion',
+    character: 'Ginny Weasley',
+    command: 'ginny',
+    trait: 'Bats-Bogey Hex champion',
+    why: 'Sharp, fast, and instinctively knows what users want to see — interfaces that feel like home',
   },
 
   // Added when any backend stack is selected (not 'none')
   backend: {
     file: 'backend',
     role: 'Backend Developer',
-    character: 'Bill Weasley',
-    command: 'bill',
-    trait: 'Curse Breaker at Gringotts',
-    why: 'Works where the real complexity lives — breaks curses in the deep systems that power everything',
+    character: 'Harry Potter',
+    command: 'harry',
+    trait: 'The Chosen One, Gryffindor Seeker',
+    why: 'Works under immense pressure and always delivers — the backend that powers the entire wizarding world',
   },
 
   // Added based on domain selection — one agent per domain
@@ -159,7 +159,7 @@ const CONDITIONAL_AGENTS = {
       role: 'ML / AI Engineer',
       character: 'Nicolas Flamel',
       command: 'flamel',
-      trait: 'Creator of the Philosopher\'s Stone',
+      trait: "Creator of the Philosopher's Stone",
       why: 'Centuries of experimental knowledge applied to the alchemy of machine intelligence',
     },
     data: {
@@ -181,10 +181,10 @@ const CONDITIONAL_AGENTS = {
     gamedev: {
       file: 'game-developer',
       role: 'Game Developer',
-      character: 'Harry Potter',
-      command: 'harry',
-      trait: 'The Chosen One, Gryffindor Seeker',
-      why: 'Knows what it feels like to play — builds gameplay systems that feel alive and fair',
+      character: 'J.K. Rowling',
+      command: 'rowling',
+      trait: 'Creator of the Wizarding World',
+      why: 'Builds entire worlds from imagination — knows that the best game systems feel inevitable once you are inside them',
     },
     embedded: {
       file: 'systems-engineer',
@@ -209,9 +209,9 @@ const CONDITIONAL_AGENTS = {
 const RESERVE_CHARACTERS = [
   { character: 'Rubeus Hagrid', command: 'hagrid', trait: 'Keeper of Keys and Grounds' },
   { character: 'Remus Lupin', command: 'lupin', trait: 'Defence Against the Dark Arts professor' },
-  { character: 'Cedric Diggory', command: 'cedric', trait: 'Hufflepuff Triwizard Champion' },
-  { character: 'Madam Pince', command: 'pince', trait: 'Hogwarts Librarian' },
-  { character: 'Lavender Brown', command: 'lavender', trait: 'Gryffindor, fiercely passionate' },
+  { character: 'Fleur Delacour', command: 'fleur', trait: 'Triwizard Champion' },
+  { character: 'Bill Weasley', command: 'bill', trait: 'Curse Breaker at Gringotts' },
+  { character: 'Kingsley Shacklebolt', command: 'kingsley', trait: 'Minister for Magic' },
 ];
 
 // Derive which conditional agents are active given user answers

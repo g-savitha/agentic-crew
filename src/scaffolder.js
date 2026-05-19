@@ -175,8 +175,8 @@ function printManifest(answers, result) {
   console.log(
     '\n  ' +
     chalk.bold('You are the CEO.') +
-    chalk.dim(' Open Claude Code and say ') +
-    chalk.white('/hermione') +
+    chalk.dim(' Open your agentic IDE (Claude Code, Cursor, Codex, etc.) and say ') +
+    chalk.white('/dumbledore') +
     chalk.dim(', brief your order.\n')
   );
 }
