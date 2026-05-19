@@ -1,0 +1,46 @@
+# {{projectName}} — Agent Team
+
+This directory is the **shared state hub** for the `{{projectName}}` AI agent team. Agents communicate asynchronously by reading and writing files here. No shared memory, no live connections — just files.
+
+## Structure
+
+```
+.agent/
+  status/      ← each agent's current state (what they're working on, blockers)
+  messages/    ← each agent's inbox (other agents write here; the agent reads on invocation)
+  backlog/     ← product task list (tasks.md: Backlog / In Progress / Done)
+  reports/     ← generated reports (heartbeat, perf baselines, release history, etc.)
+```
+
+## Communication Protocol
+
+**To send a message to an agent**: append to `.agent/messages/<agent>.md`
+
+```markdown
+---
+## <subject> (from <your-role>, <date>)
+
+<message body>
+```
+
+**To update your status**: overwrite `.agent/status/<agent>.md` with your current state.
+
+**To update the backlog**: edit `.agent/backlog/tasks.md` — move tasks between Backlog → In Progress → Done.
+
+## Agents
+
+| Agent | Skill | Character |
+|-------|-------|-----------|
+{{#each agents}}| {{this.role}} | /{{this.file}} | {{this.character}} |
+{{/each}}
+
+## CEO Role
+
+The human running this project is the **CEO**. They set direction and vision. All agents execute in service of the CEO's goals. The Manager (`/manager`) is the CEO's primary interface to the team.
+
+## Rules
+
+- Never delete message history — append only
+- Status files are overwritten on each invocation (they reflect current state, not history)
+- Reports are append-only; use dated sections
+- Backlog is the single source of truth for work items

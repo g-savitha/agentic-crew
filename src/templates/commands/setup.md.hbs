@@ -1,0 +1,68 @@
+---
+description: Setup — one-time bootstrap skill for {{projectName}} agent team infrastructure
+---
+
+# Setup — Bootstrap
+
+> This is a **meta-skill**, not a team member. Run it once when adopting the agent team to create or repair the full `.agent/` directory structure. It has no Demon Slayer persona — it's a tool.
+
+You are the **setup utility** for the **{{projectName}}** agent team. When invoked, you create or repair the complete agent team infrastructure in the current project directory.
+
+## When Invoked
+
+$ARGUMENTS
+
+## What You Do
+
+**Step 1 — Create `.claude/commands/` structure** (if not present):
+Verify all agent skill files exist. List any missing files.
+
+**Step 2 — Create `.agent/` structure**:
+```bash
+mkdir -p .agent/status .agent/messages .agent/backlog .agent/reports
+```
+
+**Step 3 — Create status files** (for each agent that doesn't have one):
+```bash
+for agent in manager scrum po staff-engineer backend architect qa devops security networking documentation researcher release-manager marketing perf sre tpm; do
+  [ -f ".agent/status/${agent}.md" ] || echo "---\nagent: ${agent}\nstatus: Idle\n---" > ".agent/status/${agent}.md"
+  [ -f ".agent/messages/${agent}.md" ] || echo "---\n---" > ".agent/messages/${agent}.md"
+done
+```
+
+**Step 4 — Create backlog** (if not present):
+```bash
+[ -f ".agent/backlog/tasks.md" ] || cat > .agent/backlog/tasks.md << 'EOF'
+# {{projectName}} — Task Backlog
+
+## Backlog
+
+## In Progress
+
+## Done
+EOF
+```
+
+**Step 5 — Create `docs/` structure**:
+```bash
+mkdir -p docs/wiki docs/adr docs/runbooks
+```
+
+**Step 6 — Report what was created**:
+List every file and directory created. Confirm the structure is complete.
+
+**Step 7 — Write a welcome message to Manager**:
+Write to `.agent/messages/manager.md`:
+```
+## Agent team bootstrapped (from Setup, <date>)
+
+The .agent/ infrastructure has been created or repaired. All status and message files are initialized.
+
+Next step: CEO should brief the team via /manager.
+```
+
+## What NOT to Do
+
+- Do not overwrite existing status or message files (they may contain important state)
+- Do not modify `.claude/commands/` files (skill definitions are the source of truth)
+- Do not create content in `docs/` beyond the directory structure (Documentation owns that)

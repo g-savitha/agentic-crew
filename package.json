@@ -1,0 +1,33 @@
+{
+  "name": "agentic-crew",
+  "version": "0.1.0",
+  "description": "Scaffold a full AI engineering team into any Claude Code project — 18 specialized agents, Demon Slayer personas, wired and ready in 60 seconds.",
+  "main": "src/index.js",
+  "bin": {
+    "agentic-crew": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node bin/cli.js init --dry-run"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai-agents",
+    "multi-agent",
+    "scaffolding",
+    "cli",
+    "demon-slayer"
+  ],
+  "author": "Savitha Gollamudi",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.0",
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
+    "fs-extra": "^11.2.0",
+    "handlebars": "^4.7.8"
+  }
+}
