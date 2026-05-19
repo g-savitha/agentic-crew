@@ -99,7 +99,21 @@ async function runQuestionnaire() {
   const customRoles = [];
   let reserveIdx = 0;
 
-  let addMore = await confirm({ message: 'Add a custom role beyond the default team?' });
+  // Show the default roster so users know what's already included
+  const { AGENTS } = require('./agents');
+  console.log('\n' + chalk.bold('  Your default corps (always included):\n'));
+  const maxChar = Math.max(...AGENTS.map((a) => a.character.length));
+  const maxRole = Math.max(...AGENTS.map((a) => a.role.length));
+  for (const a of AGENTS) {
+    console.log(
+      '  ' + chalk.cyan(a.character.padEnd(maxChar + 2)) +
+      chalk.dim(a.role.padEnd(maxRole + 2)) +
+      chalk.white(`/${a.file}`)
+    );
+  }
+  console.log();
+
+  let addMore = await confirm({ message: 'Add a custom role on top of these?' });
   if (isCancel(addMore)) { cancel('Cancelled.'); process.exit(0); }
 
   while (addMore) {
