@@ -109,7 +109,7 @@ npx agentic-crew update
 | Networking | Nymphadora Tonks | `/tonks` | Networking Expert |
 | Custom domain | Filius Flitwick | `/flitwick` | Domain Expert |
 
-With `--theme professional`, only role-based commands (e.g. `/manager`) are generated — no character aliases.
+With `--theme professional`, only role-based commands (e.g. `/manager`) are generated — no character aliases. The command catalog is `/help` instead of `/lumos`.
 
 ---
 
@@ -139,7 +139,7 @@ Character commands (e.g. `/dumbledore`) are **alias stubs** that point to the ca
 
 Agents communicate by reading and writing files in `.agent/`. No live connections — just files. Every agent can be invoked independently and picks up where the last session left off.
 
-Use `/lumos` to list every command for your project. Use `agentic-crew doctor` to verify the install.
+Use `/lumos` (Phoenix theme) or `/help` (professional theme) to list every command. Use `agentic-crew doctor` to verify the install.
 
 ---
 

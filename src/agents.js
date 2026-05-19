@@ -295,8 +295,8 @@ function applyTheme(agent, theme) {
     ...agent,
     character: agent.role,
     command: undefined,
-    trait: `${agent.role} — production engineering`,
-    why: agent.why,
+    trait: '',
+    why: `Owns ${agent.role} responsibilities for the team and reports to the CEO.`,
   };
 }
 

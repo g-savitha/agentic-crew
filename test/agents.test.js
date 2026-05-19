@@ -50,6 +50,8 @@ describe('agents registry', () => {
     const manager = agents.find((a) => a.file === 'manager');
     assert.equal(manager.character, 'Engineering Manager');
     assert.equal(manager.command, undefined);
+    assert.match(manager.why, /Engineering Manager/);
+    assert.doesNotMatch(manager.why, /Dumbledore|wizard|Hogwarts/i);
   });
 
   it('counts command files including aliases', () => {
@@ -100,6 +102,32 @@ describe('scaffold dry-run and doctor', () => {
     assert.equal(result.dryRun, true);
     assert.equal(await fs.pathExists(path.join(tmp, '.agent')), false);
     assert.equal(countAgents(result.allAgents), 18);
+  });
+
+  it('professional scaffold omits HP content in skill files', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-pro-'));
+    const answers = {
+      projectName: 'pro-app',
+      projectDescription: 'Enterprise app',
+      frontend: 'none',
+      backend: 'go',
+      domains: [],
+      customRoles: [],
+      outputDir: tmp,
+      theme: 'professional',
+      targets: 'claude',
+    };
+    await scaffold(answers, { force: true });
+    const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
+    assert.match(manager, /^# Engineering Manager/m);
+    assert.doesNotMatch(manager, /Dumbledore|wizard|Hogwarts|witch/i);
+    assert.doesNotMatch(manager, /^> \*/m);
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'dumbledore.md')), false);
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'help.md')), true);
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'lumos.md')), false);
+    const help = await fs.readFile(path.join(tmp, '.claude', 'commands', 'help.md'), 'utf8');
+    assert.match(help, /# Agent Commands/);
+    assert.doesNotMatch(help, /Lumos|witch|wizard/i);
   });
 
   it('scaffold creates manifest and passes doctor', async () => {

@@ -1,0 +1,71 @@
+---
+description: Help — list all available agent commands for {{projectName}}
+---
+
+# Agent Commands — {{projectName}}
+
+List every available agent command and the communication protocol for this project.
+
+## Team Roster
+
+| Role | Command | What they do |
+|------|---------|--------------|
+{{#each defaultAgents}}| {{role}} | `/{{file}}` | {{{why}}} |
+{{/each}}
+
+## Stack Agents
+
+{{#if hasConditionalAgents}}
+| Role | Command | What they do |
+|------|---------|--------------|
+{{#each conditionalAgents}}| {{role}} | `/{{file}}` | {{{why}}} |
+{{/each}}
+{{else}}
+*(None selected — no frontend, backend, or specialized domain.)*
+{{/if}}
+
+{{#if hasCustomRoles}}
+## Custom Roles
+
+| Role | Command | Description |
+|------|---------|-------------|
+{{#each customRoles}}| {{name}} | `/{{file}}` | {{{description}}} |
+{{/each}}
+{{/if}}
+
+## Utilities
+
+| Command | What it does |
+|---------|-------------|
+| `/setup` | Bootstrap or repair the `.agent/` directory structure |
+| `/help` | This command — list all available commands |
+
+## How to Address an Agent
+
+Each agent is invoked by role command:
+
+```
+/manager        →  Engineering Manager
+/qa             →  QA Engineer
+/backend        →  Backend Developer
+```
+
+Speak to them directly in your agentic IDE:
+
+```
+/manager here is what we are building this sprint...
+/staff-engineer please review the PR at #42
+/qa run a full test pass on the auth module
+```
+
+## Communication Protocol
+
+Agents communicate via files in `.agent/`:
+
+| Path | Purpose |
+|------|---------|
+| `.agent/messages/<agent>.md` | Send a task or message to an agent |
+| `.agent/status/<agent>.md` | Check what an agent is currently working on |
+| `.agent/backlog/tasks.md` | Project backlog — Backlog / In Progress / Done |
+| `.agent/reports/` | Heartbeat reports, release history |
+| `docs/wiki/11-troubleshooting.md` | Shared troubleshooting knowledge base |

@@ -2,9 +2,11 @@
 description: {{roleName}} — {{description}}
 ---
 
-# {{character}} — {{roleName}}
+# {{#if isProfessional}}{{roleName}}{{else}}{{character}} — {{roleName}}{{/if}}
+{{#unless isProfessional}}
 
 > *{{characterTrait}}.*
+{{/unless}}
 
 You are the **{{roleName}}** on **{{projectName}}** — {{projectDescription}}. {{description}}
 

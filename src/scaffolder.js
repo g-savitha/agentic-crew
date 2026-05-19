@@ -11,7 +11,7 @@ const {
   validateCustomRoles,
 } = require('./agents');
 const { resolveStack } = require('./stacks');
-const { PACKAGE_VERSION, MANIFEST_FILENAME } = require('./constants');
+const { PACKAGE_VERSION, MANIFEST_FILENAME, catalogCommandForTheme } = require('./constants');
 const {
   countAgents,
   countCommandFiles,
@@ -21,8 +21,17 @@ const {
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const templateCache = new Map();
+let partialsRegistered = false;
+
+function registerPartials() {
+  if (partialsRegistered) return;
+  const introPath = path.join(TEMPLATES_DIR, 'partials', 'agent-intro.md.hbs');
+  Handlebars.registerPartial('agent-intro', fs.readFileSync(introPath, 'utf8'));
+  partialsRegistered = true;
+}
 
 function loadTemplate(relativePath) {
+  registerPartials();
   if (!templateCache.has(relativePath)) {
     const full = path.join(TEMPLATES_DIR, relativePath);
     templateCache.set(relativePath, Handlebars.compile(fs.readFileSync(full, 'utf8')));
@@ -58,6 +67,7 @@ async function scaffold(answers, options = {}) {
     hasBackend: stack.hasBackend,
     hasDomain: stack.hasDomain,
     theme,
+    isProfessional: theme === 'professional',
     teamAgents: allAgents,
     allAgents,
     commandDirs: commandDirs.map((d) => path.relative(outputDir, d).replace(/\\/g, '/')),
@@ -159,18 +169,23 @@ async function scaffold(answers, options = {}) {
     const setupTpl = loadTemplate('commands/setup.md.hbs');
     await fs.writeFile(path.join(commandsDir, 'setup.md'), setupTpl(baseContext));
 
-    const lumosTpl = loadTemplate('commands/lumos.md.hbs');
-    await fs.writeFile(
-      path.join(commandsDir, 'lumos.md'),
-      lumosTpl({
-        ...baseContext,
-        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
-        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
-        customRoles: answers.customRoles || [],
-        hasConditionalAgents: conditionalAgents.length > 0,
-        hasCustomRoles: (answers.customRoles || []).length > 0,
-      })
-    );
+    const catalogCmd = catalogCommandForTheme(theme);
+    const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
+    const catalogCtx = {
+      ...baseContext,
+      defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
+      conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
+      customRoles: answers.customRoles || [],
+      hasConditionalAgents: conditionalAgents.length > 0,
+      hasCustomRoles: (answers.customRoles || []).length > 0,
+    };
+    await fs.writeFile(path.join(commandsDir, `${catalogCmd}.md`), catalogTpl(catalogCtx));
+
+    const staleCatalog = catalogCmd === 'help' ? 'lumos.md' : 'help.md';
+    const stalePath = path.join(commandsDir, staleCatalog);
+    if (await fs.pathExists(stalePath)) {
+      await fs.remove(stalePath);
+    }
   }
 
   for (const agent of allAgents) {
@@ -218,6 +233,7 @@ async function scaffold(answers, options = {}) {
     packageVersion: PACKAGE_VERSION,
     scaffoldedAt: new Date().toISOString(),
     theme,
+    catalogCommand: catalogCommandForTheme(theme),
     targets,
     project: {
       name: baseContext.projectName,
@@ -256,13 +272,20 @@ async function scaffold(answers, options = {}) {
     manifestPath,
     agentCount: countAgents(allAgents),
     commandFileCount: countCommandFiles(allAgents),
+    theme,
   };
 }
 
 function printManifest(answers, result) {
-  const { allAgents, conditionalAgents, commandDirs, agentCount, theme } = result;
+  const { allAgents, commandDirs, agentCount } = result;
+  const theme = result.theme ?? answers.theme ?? 'phoenix';
   const customRoles = answers.customRoles || [];
   const isProfessional = theme === 'professional';
+
+  const defaultFiles = new Set(DEFAULT_AGENTS.map((a) => a.file));
+  const customFiles = new Set(customRoles.map((r) => r.file));
+  const coreAgents = allAgents.filter((a) => defaultFiles.has(a.file));
+  const stackAgents = allAgents.filter((a) => !defaultFiles.has(a.file) && !customFiles.has(a.file));
 
   console.log('\n' + chalk.bold.green('  Your engineering team is assembled:\n'));
   if (isProfessional) {
@@ -270,23 +293,29 @@ function printManifest(answers, result) {
   }
 
   console.log(chalk.dim('  ── Always included ─────────────────────────────────────────'));
-  printAgentRows(DEFAULT_AGENTS, isProfessional);
+  printAgentRows(coreAgents, isProfessional);
 
-  if (conditionalAgents.length > 0) {
+  if (stackAgents.length > 0) {
     console.log(chalk.dim('\n  ── Added for your stack ────────────────────────────────────'));
-    printAgentRows(conditionalAgents, isProfessional);
+    printAgentRows(stackAgents, isProfessional);
   }
 
   if (customRoles.length > 0) {
     console.log(chalk.dim('\n  ── Your custom roles ───────────────────────────────────────'));
     for (const r of customRoles) {
-      const cmd = isProfessional ? r.file : r.command || r.file;
-      console.log(
-        '  ' +
-          chalk.cyan((r.character || r.name).padEnd(24)) +
-          chalk.white(`/${cmd}`.padEnd(14)) +
-          chalk.dim(`or /${r.file}`)
-      );
+      const label = isProfessional ? r.name : r.character || r.name;
+      if (isProfessional) {
+        console.log('  ' + chalk.cyan(label.padEnd(28)) + chalk.white(`/${r.file}`));
+      } else {
+        const cmd = r.command || r.file;
+        console.log(
+          '  ' +
+            chalk.cyan(label.padEnd(24)) +
+            chalk.white(('/' + cmd).padEnd(maxCmdPad(cmd, r.file) + 3)) +
+            chalk.dim('or  ') +
+            chalk.dim(`/${r.file}`)
+        );
+      }
     }
   }
 
@@ -295,12 +324,13 @@ function printManifest(answers, result) {
       chalk.dim(`Agents: ${agentCount} · Command dirs: `) +
       commandDirs.map((d) => chalk.white(path.relative(result.outputDir, d))).join(chalk.dim(', '))
   );
+  const catalogSlash = `/${catalogCommandForTheme(theme)}`;
   console.log(
     '\n  ' +
       chalk.dim('Utilities: ') +
       chalk.white('/setup') +
       chalk.dim(' — bootstrap   ') +
-      chalk.white('/lumos') +
+      chalk.white(catalogSlash) +
       chalk.dim(' — show all commands')
   );
   const startCmd = isProfessional ? '/manager' : '/dumbledore';
@@ -312,24 +342,36 @@ function printManifest(answers, result) {
       chalk.dim(' to begin.\n') +
       '  ' +
       chalk.dim('Run ') +
-      chalk.white('/lumos') +
+      chalk.white(catalogSlash) +
       chalk.dim(' to list every command.\n')
   );
 }
 
+function maxCmdPad(command, file) {
+  return Math.max(command.length, file.length);
+}
+
 function printAgentRows(agents, professional) {
   const maxChar = Math.max(...agents.map((a) => (professional ? a.role : a.character).length));
-  const maxCmd = Math.max(...agents.map((a) => ((professional ? a.file : a.command) || a.file).length));
+  const maxCmd = Math.max(
+    ...agents.map((a) => (professional ? a.file : maxCmdPad(a.command || a.file, a.file)).length)
+  );
   for (const a of agents) {
     const label = professional ? a.role : a.character;
-    const cmd = professional ? a.file : a.command || a.file;
+    if (professional) {
+      console.log(
+        '  ' + chalk.cyan(label.padEnd(maxChar + 2)) + chalk.white(`/${a.file}`)
+      );
+      continue;
+    }
+    const cmd = a.command || a.file;
     console.log(
       '  ' +
         chalk.cyan(label.padEnd(maxChar + 2)) +
         chalk.white(('/' + cmd).padEnd(maxCmd + 3)) +
         chalk.dim('or  ') +
         chalk.dim(`/${a.file}`) +
-        (professional ? '' : chalk.dim(`  (${a.role})`))
+        chalk.dim(`  (${a.role})`)
     );
   }
 }
