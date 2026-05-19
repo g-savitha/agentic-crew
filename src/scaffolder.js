@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const Handlebars = require('handlebars');
 const chalk = require('chalk');
-const { DEFAULT_AGENTS, resolveActiveAgents } = require('./agents');
+const { DEFAULT_AGENTS, RESERVE_CHARACTERS, resolveActiveAgents } = require('./agents');
 const { STACK_DESCRIPTIONS } = require('./stacks');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -84,19 +84,20 @@ async function scaffold(answers) {
   await fs.writeFile(path.join(commandsDir, 'setup.md'), setupTpl(baseContext));
   process.stdout.write(chalk.green('  ✓ ') + chalk.dim('.claude/commands/setup.md') + chalk.cyan('  (bootstrap)\n'));
 
-  // ── Help skill ────────────────────────────────────────────────────
-  const helpTpl = loadTemplate('commands/help.md.hbs');
-  const helpCustomRoles = answers.customRoles || [];
-  const helpCtx = {
+  // ── Lumos skill ───────────────────────────────────────────────────
+  const lumosTpl = loadTemplate('commands/lumos.md.hbs');
+  const lumosCustomRoles = answers.customRoles || [];
+  const lumosCtx = {
     ...baseContext,
     defaultAgents: DEFAULT_AGENTS,
     conditionalAgents,
-    customRoles: helpCustomRoles,
+    customRoles: lumosCustomRoles,
+    reserveCharacters: RESERVE_CHARACTERS,
     hasConditionalAgents: conditionalAgents.length > 0,
-    hasCustomRoles: helpCustomRoles.length > 0,
+    hasCustomRoles: lumosCustomRoles.length > 0,
   };
-  await fs.writeFile(path.join(commandsDir, 'help.md'), helpTpl(helpCtx));
-  process.stdout.write(chalk.green('  ✓ ') + chalk.dim('.claude/commands/help.md') + chalk.cyan('  (help)\n'));
+  await fs.writeFile(path.join(commandsDir, 'lumos.md'), lumosTpl(lumosCtx));
+  process.stdout.write(chalk.green('  ✓ ') + chalk.dim('.claude/commands/lumos.md') + chalk.cyan('  (lumos)\n'));
 
   // ── Custom roles ──────────────────────────────────────────────────
   if (answers.customRoles && answers.customRoles.length > 0) {
@@ -193,13 +194,17 @@ function printManifest(answers, result) {
     }
   }
 
-  console.log('\n  ' + chalk.dim('Setup skill: ') + chalk.white('/setup') + chalk.dim('   Help: ') + chalk.white('/help'));
+  console.log(
+    '\n  ' + chalk.dim('Utilities: ') +
+    chalk.white('/setup') + chalk.dim(' — bootstrap   ') +
+    chalk.white('/lumos') + chalk.dim(' — show all commands')
+  );
   console.log(
     '\n  ' +
     chalk.bold.yellow('✨ Mischief managed.') +
-    chalk.dim(' Your order is assembled — open your agentic IDE and say ') +
-    chalk.white('/dumbledore') +
-    chalk.dim(' to begin.\n')
+    chalk.dim(' Your order is assembled.\n') +
+    '  ' + chalk.dim('Open your agentic IDE and say ') + chalk.white('/dumbledore') + chalk.dim(' to begin.\n') +
+    '  ' + chalk.dim('Not sure what to say? Run ') + chalk.white('/lumos') + chalk.dim(' to see every available command.\n')
   );
 }
 

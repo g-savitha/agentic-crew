@@ -1,12 +1,12 @@
 ---
-description: Help — lists all available agent commands for {{projectName}}
+description: Lumos — illuminate all available agent commands for {{projectName}}
 ---
 
-# Help — {{projectName}} Agent Commands
+# Lumos — {{projectName}} Agent Commands
 
-> *"It does not do to dwell on dreams and forget to live." — Albus Dumbledore*
+> *"Lumos." — Every witch and wizard, when they need to see clearly.*
 
-List every available agent command for this project, along with their character alias and role.
+List every available agent command, available characters for custom roles, and the communication protocol.
 
 ## Your Order — Always Available
 
@@ -35,12 +35,23 @@ List every available agent command for this project, along with their character 
 {{/each}}
 {{/if}}
 
+## Available Characters for Custom Roles
+
+These characters are available to assign when adding a new custom role:
+
+| Character | Command | Trait |
+|-----------|---------|-------|
+{{#each reserveCharacters}}| {{character}} | `/{{command}}` | {{trait}} |
+{{/each}}
+
+To add a new role, create a skill file manually in `.claude/commands/` using any agent file as a template.
+
 ## Utilities
 
 | Command | What it does |
 |---------|-------------|
 | `/setup` | Bootstrap or repair the `.agent/` directory structure |
-| `/help` | This command — show all available agent commands |
+| `/lumos` | This command — illuminate all available commands and characters |
 
 ## How to Address an Agent
 
