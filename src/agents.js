@@ -207,11 +207,79 @@ const CONDITIONAL_AGENTS = {
 
 // Characters available for custom roles (not assigned to any default or conditional agent)
 const RESERVE_CHARACTERS = [
-  { character: 'Rubeus Hagrid', command: 'hagrid', trait: 'Keeper of Keys and Grounds' },
-  { character: 'Remus Lupin', command: 'lupin', trait: 'Defence Against the Dark Arts professor' },
-  { character: 'Fleur Delacour', command: 'fleur', trait: 'Triwizard Champion' },
-  { character: 'Bill Weasley', command: 'bill', trait: 'Curse Breaker at Gringotts' },
-  { character: 'Kingsley Shacklebolt', command: 'kingsley', trait: 'Minister for Magic' },
+  // Weasley family & close allies
+  { character: 'Rubeus Hagrid',          command: 'hagrid',       trait: 'Keeper of Keys and Grounds at Hogwarts' },
+  { character: 'Remus Lupin',            command: 'lupin',        trait: 'Defence Against the Dark Arts professor, Marauder' },
+  { character: 'Fleur Delacour',         command: 'fleur',        trait: 'Triwizard Champion, Beauxbatons' },
+  { character: 'Bill Weasley',           command: 'bill',         trait: 'Curse Breaker at Gringotts' },
+  { character: 'Kingsley Shacklebolt',   command: 'kingsley',     trait: 'Minister for Magic' },
+  { character: 'Fred Weasley',           command: 'fred',         trait: "The other half of Weasleys' Wizard Wheezes" },
+  { character: 'Percy Weasley',          command: 'percy',        trait: 'Head Boy, Ministry of Magic' },
+  { character: 'Molly Weasley',          command: 'molly',        trait: 'Matriarch of the Weasley family' },
+  // Potter family & Marauders
+  { character: 'James Potter',           command: 'james',        trait: 'Head Boy, Gryffindor Marauder' },
+  { character: 'Lily Potter',            command: 'lily',         trait: 'Brightest of her year, Charms prodigy' },
+  { character: 'Regulus Black',          command: 'regulus',      trait: 'Slytherin, secretly heroic' },
+  { character: 'Peter Pettigrew',        command: 'pettigrew',    trait: 'Animagus, master of disguise' },
+  // Gryffindor students
+  { character: 'Lavender Brown',         command: 'lavender',     trait: 'Gryffindor, fierce and passionate' },
+  { character: 'Parvati Patil',          command: 'parvati',      trait: 'Gryffindor, intuitive and perceptive' },
+  { character: 'Dean Thomas',            command: 'dean',         trait: 'Gryffindor, loyal and creative' },
+  { character: 'Seamus Finnigan',        command: 'seamus',       trait: 'Half-blood, explosively enthusiastic' },
+  { character: 'Lee Jordan',             command: 'lee',          trait: 'Quidditch commentator, voice of the people' },
+  { character: 'Colin Creevey',          command: 'colin',        trait: 'Gryffindor, enthusiastic documentarian' },
+  { character: 'Angelina Johnson',       command: 'angelina',     trait: 'Gryffindor Quidditch Captain' },
+  { character: 'Alicia Spinnet',         command: 'alicia',       trait: 'Gryffindor Chaser' },
+  { character: 'Katie Bell',             command: 'katie',        trait: 'Gryffindor Chaser' },
+  { character: 'Cormac McLaggen',        command: 'cormac',       trait: 'Overconfident, forceful achiever' },
+  // Ravenclaw students
+  { character: 'Cho Chang',             command: 'cho',          trait: 'Ravenclaw Seeker, precise under pressure' },
+  { character: 'Padma Patil',            command: 'padma',        trait: 'Ravenclaw, sharp and methodical' },
+  { character: 'Helena Ravenclaw',       command: 'helena',       trait: 'The Grey Lady, keeper of Ravenclaw wisdom' },
+  { character: 'Terry Boot',             command: 'terry',        trait: 'Ravenclaw, analytical and thorough' },
+  // Hufflepuff students
+  { character: 'Hannah Abbott',          command: 'hannah',       trait: 'Hufflepuff, dependable and kind' },
+  { character: 'Ernie Macmillan',        command: 'ernie',        trait: 'Hufflepuff prefect, by-the-book' },
+  { character: 'Zacharias Smith',        command: 'zacharias',    trait: 'Hufflepuff, skeptical analyst' },
+  { character: 'Susan Bones',            command: 'susan',        trait: 'Hufflepuff, hardworking and diligent' },
+  { character: 'Justin Finch-Fletchley', command: 'justin',       trait: 'Hufflepuff, earnest and methodical' },
+  // Slytherin students
+  { character: 'Pansy Parkinson',        command: 'pansy',        trait: 'Slytherin prefect' },
+  { character: 'Blaise Zabini',          command: 'blaise',       trait: 'Slytherin, cool and calculating' },
+  { character: 'Millicent Bulstrode',    command: 'millicent',    trait: 'Slytherin, relentlessly direct' },
+  // Hogwarts professors & staff
+  { character: 'Pomona Sprout',          command: 'sprout',       trait: 'Head of Hufflepuff, patient cultivator' },
+  { character: 'Filius Flitwick',        command: 'flitwick',     trait: 'Head of Ravenclaw, master of charms' },
+  { character: 'Sybill Trelawney',       command: 'trelawney',    trait: 'Divination professor, pattern spotter' },
+  { character: 'Horace Slughorn',        command: 'slughorn',     trait: 'Potions master, well-connected collector' },
+  { character: 'Poppy Pomfrey',          command: 'pomfrey',      trait: 'Hogwarts Nurse, meticulous healer' },
+  { character: 'Rolanda Hooch',          command: 'hooch',        trait: 'Flying instructor, unerring referee' },
+  { character: 'Argus Filch',            command: 'filch',        trait: 'Caretaker, finds every rule violation' },
+  { character: 'Irma Pince',             command: 'pince',        trait: 'Hogwarts Librarian, guardian of all knowledge' },
+  { character: 'Quirinus Quirrell',      command: 'quirrell',     trait: 'Defence professor, high-pressure performer' },
+  // Ministry of Magic
+  { character: 'Cornelius Fudge',        command: 'fudge',        trait: 'Minister for Magic, risk-averse bureaucrat' },
+  { character: 'Rufus Scrimgeour',       command: 'scrimgeour',   trait: 'Auror-turned-Minister, tenacious' },
+  { character: 'Dolores Umbridge',       command: 'umbridge',     trait: 'High Inquisitor, enforces every standard' },
+  { character: 'Rita Skeeter',           command: 'rita',         trait: 'Investigative journalist, Quick-Quotes Quill' },
+  // Dark side
+  { character: 'Bellatrix Lestrange',    command: 'bellatrix',    trait: 'Death Eater, relentlessly aggressive' },
+  { character: 'Narcissa Malfoy',        command: 'narcissa',     trait: 'Slytherin, fiercely protective' },
+  { character: 'Lucius Malfoy',          command: 'lucius',       trait: 'Death Eater, politically savvy' },
+  { character: 'Tom Riddle',             command: 'tom',          trait: 'Before the dark mark — brilliant and ruthlessly ambitious' },
+  { character: 'Gellert Grindelwald',    command: 'grindelwald',  trait: 'Dark wizard, visionary strategist' },
+  // Order of the Phoenix & allies
+  { character: 'Aberforth Dumbledore',   command: 'aberforth',    trait: "Hog's Head barkeeper, pragmatic and gruff" },
+  { character: 'Mundungus Fletcher',     command: 'mundungus',    trait: 'Black market dealer, resourceful' },
+  { character: 'Xenophilius Lovegood',   command: 'xenophilius',  trait: 'Editor of The Quibbler, unconventional thinker' },
+  { character: 'Augusta Longbottom',     command: 'augusta',      trait: 'Formidable matriarch, uncompromising standards' },
+  { character: 'Stan Shunpike',          command: 'stan',         trait: 'Knight Bus conductor, gets you there somehow' },
+  // Magical beings & ghosts
+  { character: 'Kreacher',               command: 'kreacher',     trait: 'House-elf, obsessively meticulous' },
+  { character: 'Winky',                  command: 'winky',        trait: 'House-elf, fiercely loyal' },
+  { character: 'Firenze',                command: 'firenze',      trait: 'Centaur, reads patterns in the stars' },
+  { character: 'Moaning Myrtle',         command: 'myrtle',       trait: 'Ravenclaw ghost, finds every flaw' },
+  { character: 'Nearly Headless Nick',   command: 'nick',         trait: 'Gryffindor ghost, keeper of traditions' },
 ];
 
 // Derive which conditional agents are active given user answers
