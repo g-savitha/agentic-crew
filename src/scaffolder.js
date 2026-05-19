@@ -174,10 +174,10 @@ function printManifest(answers, result) {
   console.log('\n  ' + chalk.dim('Setup skill: ') + chalk.white('/setup'));
   console.log(
     '\n  ' +
-    chalk.bold('You are the CEO.') +
-    chalk.dim(' Open your agentic IDE (Claude Code, Cursor, Codex, etc.) and say ') +
+    chalk.bold.yellow('✨ Mischief managed.') +
+    chalk.dim(' Your order is assembled — open your agentic IDE and say ') +
     chalk.white('/dumbledore') +
-    chalk.dim(', brief your order.\n')
+    chalk.dim(' to begin.\n')
   );
 }
 
