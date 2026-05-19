@@ -2,13 +2,7 @@
 description: {{roleName}} — {{description}}
 ---
 
-# {{#if isProfessional}}{{roleName}}{{else}}{{character}} — {{roleName}}{{/if}}
-{{#unless isProfessional}}
-
-> *{{characterTrait}}.*
-{{/unless}}
-
-You are the **{{roleName}}** on **{{projectName}}** — {{projectDescription}}. {{description}}
+{{> agent-intro roleLabel=roleName seniorBrief=seniorBrief}}
 
 **You report to the CEO.** The CEO sets direction; you execute with excellence.
 

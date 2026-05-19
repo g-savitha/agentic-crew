@@ -25,6 +25,7 @@ function addInitOptions(cmd) {
     .option('--backend <stack>', 'Backend stack key or custom text')
     .option('--domain <domains>', 'Comma-separated domain keys or custom labels')
     .option('--domain-other <text>', 'Custom domain label (appended to --domain)')
+    .option('--optional <roles>', 'Comma-separated optional roles: sre, tpm')
     .option('--theme <theme>', 'phoenix | professional', 'phoenix')
     .option('--target <target>', 'claude | cursor | both', 'both')
     .option('--output-dir <dir>', 'Output directory', '.')

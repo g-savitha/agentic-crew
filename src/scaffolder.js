@@ -4,12 +4,16 @@ const Handlebars = require('handlebars');
 const chalk = require('chalk');
 const {
   DEFAULT_AGENTS,
+  OPTIONAL_AGENTS,
   applyTheme,
   resolveConditionalAgents,
+  resolveOptionalAgents,
   resolveAllAgents,
   templatePathForAgent,
   validateCustomRoles,
 } = require('./agents');
+
+const OPTIONAL_FILES = new Set(Object.values(OPTIONAL_AGENTS).map((a) => a.file));
 const { resolveStack } = require('./stacks');
 const { PACKAGE_VERSION, MANIFEST_FILENAME, catalogCommandForTheme } = require('./constants');
 const {
@@ -54,6 +58,7 @@ async function scaffold(answers, options = {}) {
 
   const stack = resolveStack(answers);
   const conditionalAgents = resolveConditionalAgents(answers);
+  const optionalAgents = resolveOptionalAgents(answers);
   const allAgents = resolveAllAgents(answers, theme);
 
   const baseContext = {
@@ -137,7 +142,9 @@ async function scaffold(answers, options = {}) {
         characterTrait: agent.trait,
         characterWhy: agent.why,
         role: agent.role,
+        roleLabel: agent.role,
         roleName: agent.role,
+        seniorBrief: agent.seniorBrief,
         description: agent.why,
         file: agent.file,
         customDomainLabel: agent.customDomainLabel,
@@ -175,8 +182,10 @@ async function scaffold(answers, options = {}) {
       ...baseContext,
       defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
       conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
+      optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
       customRoles: answers.customRoles || [],
       hasConditionalAgents: conditionalAgents.length > 0,
+      hasOptionalAgents: optionalAgents.length > 0,
       hasCustomRoles: (answers.customRoles || []).length > 0,
     };
     await fs.writeFile(path.join(commandsDir, `${catalogCmd}.md`), catalogTpl(catalogCtx));
@@ -245,6 +254,7 @@ async function scaffold(answers, options = {}) {
       backend: answers.backend,
       domains: stack.domainKeys,
     },
+    optionalRoles: answers.optionalRoles || [],
     agents: allAgents.map((a) => ({
       file: a.file,
       role: a.role,
@@ -269,6 +279,7 @@ async function scaffold(answers, options = {}) {
     allAgents,
     outputDir,
     conditionalAgents,
+    optionalAgents,
     manifestPath,
     agentCount: countAgents(allAgents),
     commandFileCount: countCommandFiles(allAgents),
@@ -285,7 +296,9 @@ function printManifest(answers, result) {
   const defaultFiles = new Set(DEFAULT_AGENTS.map((a) => a.file));
   const customFiles = new Set(customRoles.map((r) => r.file));
   const coreAgents = allAgents.filter((a) => defaultFiles.has(a.file));
-  const stackAgents = allAgents.filter((a) => !defaultFiles.has(a.file) && !customFiles.has(a.file));
+  const extraAgents = allAgents.filter((a) => !defaultFiles.has(a.file) && !customFiles.has(a.file));
+  const optionalIncluded = extraAgents.filter((a) => OPTIONAL_FILES.has(a.file));
+  const stackAgents = extraAgents.filter((a) => !OPTIONAL_FILES.has(a.file));
 
   console.log('\n' + chalk.bold.green('  Your engineering team is assembled:\n'));
   if (isProfessional) {
@@ -298,6 +311,11 @@ function printManifest(answers, result) {
   if (stackAgents.length > 0) {
     console.log(chalk.dim('\n  ── Added for your stack ────────────────────────────────────'));
     printAgentRows(stackAgents, isProfessional);
+  }
+
+  if (optionalIncluded.length > 0) {
+    console.log(chalk.dim('\n  ── Optional roles selected ─────────────────────────────────'));
+    printAgentRows(optionalIncluded, isProfessional);
   }
 
   if (customRoles.length > 0) {

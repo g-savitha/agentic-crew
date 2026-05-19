@@ -63,6 +63,7 @@ npx agentic-crew update
 | `--backend` | Stack key or custom text |
 | `--domain` | Comma-separated domains (`ml`, `data`, `networking`, …) |
 | `--domain-other` | Additional custom domain label |
+| `--optional` | Comma-separated optional roles: `sre`, `tpm` |
 | `--theme` | `phoenix` (default) or `professional` |
 | `--target` | `claude`, `cursor`, or `both` (default) |
 | `--output-dir` | Directory to scaffold into (default `.`) |
@@ -74,7 +75,7 @@ npx agentic-crew update
 
 ## The Team
 
-### Always included (15 agents)
+### Always included (13 agents)
 
 | Character | Command | Alias | Role |
 |-----------|---------|-------|------|
@@ -91,8 +92,13 @@ npx agentic-crew update
 | Oliver Wood | `/oliver` | `/release-manager` | Release Manager |
 | Gilderoy Lockhart | `/lockhart` | `/marketing` | Marketing |
 | Viktor Krum | `/krum` | `/perf` | Performance Engineer |
-| Dobby | `/dobby` | `/sre` | Site Reliability Engineer |
-| Percy Weasley | `/tpm` | — | Technical Program Manager |
+
+### Optional (select at init)
+
+| Role | Character | Command | Alias |
+|------|-----------|---------|-------|
+| Site Reliability Engineer | Dobby | `/dobby` | `/sre` |
+| Technical Program Manager | Percy Weasley | `/tpm` | — |
 
 ### Added based on your stack (select multiple domains)
 
@@ -150,6 +156,7 @@ Use `/lumos` (Phoenix theme) or `/help` (professional theme) to list every comma
 - **Persistent state** — status, messages, and backlog survive between sessions
 - **Single source of truth** — `.agentic-crew.json` records your roster for doctor/update
 - **IDE-flexible** — Claude Code and Cursor out of the box
+- **Role-specific expertise** — each agent skill includes a tailored senior brief (not generic boilerplate)
 
 ---
 

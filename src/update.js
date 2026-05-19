@@ -27,6 +27,7 @@ async function runUpdate(projectDir = '.', options = {}) {
     backend: manifest.stacks?.backend || 'none',
     domains: manifest.stacks?.domains || [],
     domain: (manifest.stacks?.domains || [])[0] || 'none',
+    optionalRoles: manifest.optionalRoles || [],
     customRoles: (manifest.customRoles || []).map((r) => ({
       name: r.name || r.file,
       file: r.file,

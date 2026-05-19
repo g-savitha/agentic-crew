@@ -26,6 +26,15 @@ List every available agent command, character personas, and the communication pr
 *(None selected — you chose no frontend, backend, or specialized domain.)*
 {{/if}}
 
+{{#if hasOptionalAgents}}
+## Optional Roles
+
+| Character | Command | Alias | Role | What they do |
+|-----------|---------|-------|------|--------------|
+{{#each optionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{{why}}} |
+{{/each}}
+{{/if}}
+
 {{#if hasCustomRoles}}
 ## Custom Roles
 

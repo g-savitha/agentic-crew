@@ -24,6 +24,15 @@ List every available agent command and the communication protocol for this proje
 *(None selected — no frontend, backend, or specialized domain.)*
 {{/if}}
 
+{{#if hasOptionalAgents}}
+## Optional Roles
+
+| Role | Command | What they do |
+|------|---------|--------------|
+{{#each optionalAgents}}| {{role}} | `/{{file}}` | {{{why}}} |
+{{/each}}
+{{/if}}
+
 {{#if hasCustomRoles}}
 ## Custom Roles
 

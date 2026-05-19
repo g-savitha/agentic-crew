@@ -1,5 +1,6 @@
 const { THEMES, IDE_TARGETS } = require('./constants');
 const { normalizeDomains, normalizeTargets } = require('./utils');
+const { normalizeOptionalRoles } = require('./agents');
 const { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS } = require('./stacks');
 
 /**
@@ -39,6 +40,7 @@ function answersFromOptions(cmd) {
     domains,
     domain: domains[0] || 'none',
     customRoles: [],
+    optionalRoles: normalizeOptionalRoles(opts.optional || []),
     outputDir: (opts.outputDir || '.').trim() || '.',
     theme,
     targets: targetKey,

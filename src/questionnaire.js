@@ -12,8 +12,11 @@ const chalk = require('chalk');
 const { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS } = require('./stacks');
 const {
   DEFAULT_AGENTS,
+  OPTIONAL_AGENTS,
+  OPTIONAL_ROLE_KEYS,
   RESERVE_CHARACTERS,
   resolveConditionalAgents,
+  resolveOptionalAgents,
   resolveAllAgents,
   buildReservedSlugs,
   validateCustomRoles,
@@ -112,14 +115,32 @@ async function runQuestionnaire() {
   });
   if (isCancel(target)) { cancel('Cancelled.'); process.exit(0); }
 
+  const optionalChoices = await multiselect({
+    message: 'Optional roles to include? (Space to toggle, Enter to confirm)',
+    options: OPTIONAL_ROLE_KEYS.map((key) => {
+      const meta = OPTIONAL_AGENTS[key];
+      return {
+        value: key,
+        label: meta.role,
+        hint: `/${meta.file}${meta.command && meta.command !== meta.file ? ` or /${meta.command}` : ''}`,
+      };
+    }),
+    required: false,
+  });
+  if (isCancel(optionalChoices)) { cancel('Cancelled.'); process.exit(0); }
+
+  const optionalRoles = [...(optionalChoices || [])];
+
   const draftAnswers = {
     frontend: frontendResolved,
     backend: backendResolved,
     domains,
     theme,
+    optionalRoles,
     customRoles: [],
   };
   const conditionalAgents = resolveConditionalAgents(draftAnswers);
+  const optionalAgents = resolveOptionalAgents(draftAnswers);
   const previewAgents = resolveAllAgents(draftAnswers, theme);
 
   console.log('\n' + chalk.bold(`  Your team — ${countAgents(previewAgents)} agents:\n`));
@@ -127,6 +148,10 @@ async function runQuestionnaire() {
   if (conditionalAgents.length > 0) {
     console.log(chalk.dim('\n  Added for your stack:\n'));
     printPreview(conditionalAgents, theme);
+  }
+  if (optionalAgents.length > 0) {
+    console.log(chalk.dim('\n  Optional roles selected:\n'));
+    printPreview(optionalAgents, theme);
   }
   console.log();
 
@@ -222,6 +247,7 @@ async function runQuestionnaire() {
     domains,
     domain: domains[0] || 'none',
     customRoles,
+    optionalRoles,
     outputDir: (outputDir || '.').trim() || '.',
     theme,
     targets: target,

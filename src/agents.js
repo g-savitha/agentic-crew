@@ -1,7 +1,9 @@
 const { UTILITY_COMMANDS } = require('./constants');
 const { normalizeDomains, assertNoCollision } = require('./utils');
 
-/** @typedef {{ file: string, role: string, character: string, command?: string, trait: string, why: string, template?: string, domainKey?: string }} AgentDefinition */
+/** @typedef {{ file: string, role: string, character: string, command?: string, trait: string, why: string, seniorBrief?: string, template?: string, domainKey?: string, customDomainLabel?: string }} AgentDefinition */
+
+const { enrichAgent } = require('./role-briefs');
 
 const DEFAULT_AGENTS = [
   {
@@ -108,7 +110,11 @@ const DEFAULT_AGENTS = [
     trait: 'International Quidditch Seeker',
     why: 'Elite performance is his only mode — optimizes every system to world-championship standards',
   },
-  {
+];
+
+/** Optional roles — included only when the user selects them at init */
+const OPTIONAL_AGENTS = {
+  sre: {
     file: 'sre',
     role: 'Site Reliability Engineer',
     character: 'Dobby',
@@ -116,7 +122,7 @@ const DEFAULT_AGENTS = [
     trait: 'A free elf',
     why: 'Unconditional protector — responds to incidents before they become disasters and will always be there when needed',
   },
-  {
+  tpm: {
     file: 'tpm',
     role: 'Technical Program Manager',
     character: 'Percy Weasley',
@@ -124,7 +130,9 @@ const DEFAULT_AGENTS = [
     trait: 'Head Boy, Ministry of Magic',
     why: 'Coordinates dependencies, milestones, and risk across the entire organization with relentless precision',
   },
-];
+};
+
+const OPTIONAL_ROLE_KEYS = Object.keys(OPTIONAL_AGENTS);
 
 const CONDITIONAL_AGENTS = {
   frontend: {
@@ -338,6 +346,25 @@ function resolveConditionalAgents(answers) {
   return active;
 }
 
+/**
+ * @param {string | string[] | undefined} optional
+ * @returns {string[]}
+ */
+function normalizeOptionalRoles(optional) {
+  if (!optional) return [];
+  const raw = Array.isArray(optional) ? optional : String(optional).split(',');
+  return [...new Set(raw.map((k) => k.trim().toLowerCase()).filter((k) => OPTIONAL_ROLE_KEYS.includes(k)))];
+}
+
+/**
+ * @param {object} answers
+ * @returns {AgentDefinition[]}
+ */
+function resolveOptionalAgents(answers) {
+  const keys = normalizeOptionalRoles(answers.optionalRoles);
+  return keys.map((key) => ({ ...OPTIONAL_AGENTS[key] }));
+}
+
 /** @deprecated Use resolveConditionalAgents */
 function resolveActiveAgents(answers) {
   return resolveConditionalAgents(answers);
@@ -350,17 +377,23 @@ function resolveActiveAgents(answers) {
  */
 function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
   const conditional = resolveConditionalAgents(answers);
-  const customRoles = (answers.customRoles || []).map((r) => ({
-    file: r.file,
-    role: r.name,
-    character: r.character,
-    command: theme === 'professional' ? undefined : r.command,
-    trait: r.trait,
-    why: r.description,
-    template: 'custom-role',
-  }));
+  const optional = resolveOptionalAgents(answers);
+  const customRoles = (answers.customRoles || []).map((r) =>
+    enrichAgent({
+      file: r.file,
+      role: r.name,
+      character: r.character,
+      command: theme === 'professional' ? undefined : r.command,
+      trait: r.trait,
+      why: r.description,
+      seniorBrief: r.seniorBrief || `You own ${r.name} end-to-end: ${r.description} Apply senior-level judgment, clear communication, and production-grade execution.`,
+      template: 'custom-role',
+    })
+  );
 
-  const core = [...DEFAULT_AGENTS, ...conditional].map((a) => applyTheme(a, theme));
+  const core = [...DEFAULT_AGENTS, ...conditional, ...optional]
+    .map((a) => applyTheme(a, theme))
+    .map(enrichAgent);
   return [...core, ...customRoles];
 }
 
@@ -383,6 +416,10 @@ function templatePathForAgent(agent) {
 function buildReservedSlugs() {
   const reserved = new Set([...UTILITY_COMMANDS]);
   for (const agent of DEFAULT_AGENTS) {
+    reserved.add(agent.file);
+    if (agent.command) reserved.add(agent.command);
+  }
+  for (const agent of Object.values(OPTIONAL_AGENTS)) {
     reserved.add(agent.file);
     if (agent.command) reserved.add(agent.command);
   }
@@ -414,12 +451,16 @@ function validateCustomRoles(customRoles) {
 
 module.exports = {
   DEFAULT_AGENTS,
+  OPTIONAL_AGENTS,
+  OPTIONAL_ROLE_KEYS,
   CONDITIONAL_AGENTS,
   CUSTOM_DOMAIN_AGENT,
   RESERVE_CHARACTERS,
   KNOWN_DOMAIN_KEYS,
   applyTheme,
+  normalizeOptionalRoles,
   resolveConditionalAgents,
+  resolveOptionalAgents,
   resolveActiveAgents,
   resolveAllAgents,
   templatePathForAgent,
