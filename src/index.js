@@ -18,7 +18,7 @@ program
     try {
       const answers = await runQuestionnaire();
 
-      console.log('\n' + chalk.bold('  Assembling your corps...\n'));
+      console.log('\n' + chalk.bold('  Assembling your order...\n'));
 
       const result = await scaffold(answers);
 
