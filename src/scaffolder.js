@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const Handlebars = require('handlebars');
 const chalk = require('chalk');
-const { DEFAULT_AGENTS, RESERVE_CHARACTERS, resolveActiveAgents } = require('./agents');
+const { DEFAULT_AGENTS, resolveActiveAgents } = require('./agents');
 const { STACK_DESCRIPTIONS } = require('./stacks');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -92,7 +92,6 @@ async function scaffold(answers) {
     defaultAgents: DEFAULT_AGENTS,
     conditionalAgents,
     customRoles: lumosCustomRoles,
-    reserveCharacters: RESERVE_CHARACTERS,
     hasConditionalAgents: conditionalAgents.length > 0,
     hasCustomRoles: lumosCustomRoles.length > 0,
   };

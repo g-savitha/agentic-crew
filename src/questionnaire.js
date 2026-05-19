@@ -97,7 +97,8 @@ async function runQuestionnaire() {
 
   // ── Custom roles ─────────────────────────────────────────────────
   const customRoles = [];
-  let reserveIdx = 0;
+  // Shuffle reserve pool so each run gets a different order, no repeats until pool exhausted
+  const reservePool = [...RESERVE_CHARACTERS].sort(() => Math.random() - 0.5);
 
   // Show full roster: defaults + what was just selected, so users know what they're getting
   const conditionalAgents = resolveActiveAgents({ frontend, backend, domain });
@@ -150,8 +151,8 @@ async function runQuestionnaire() {
     });
     if (isCancel(roleDescription)) { cancel('Cancelled.'); process.exit(0); }
 
-    const suggested = RESERVE_CHARACTERS[reserveIdx % RESERVE_CHARACTERS.length];
-    reserveIdx++;
+    if (reservePool.length === 0) reservePool.push(...RESERVE_CHARACTERS.sort(() => Math.random() - 0.5));
+    const suggested = reservePool.shift();
 
     const useCharacter = await confirm({
       message: `Assign ${chalk.bold(suggested.character)} as the persona for ${chalk.bold(roleName)}?`,

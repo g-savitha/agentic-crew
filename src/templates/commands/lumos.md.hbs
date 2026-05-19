@@ -10,17 +10,17 @@ List every available agent command, available characters for custom roles, and t
 
 ## Your Order — Always Available
 
-| Character | Command | Alias | Role |
-|-----------|---------|-------|------|
-{{#each defaultAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} |
+| Character | Command | Alias | Role | What they do |
+|-----------|---------|-------|------|--------------|
+{{#each defaultAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{{why}}} |
 {{/each}}
 
 ## Stack Agents
 
 {{#if hasConditionalAgents}}
-| Character | Command | Alias | Role |
-|-----------|---------|-------|------|
-{{#each conditionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} |
+| Character | Command | Alias | Role | What they do |
+|-----------|---------|-------|------|--------------|
+{{#each conditionalAgents}}| {{character}} | `/{{command}}` | `/{{file}}` | {{role}} | {{{why}}} |
 {{/each}}
 {{else}}
 *(None selected — you chose no frontend, backend, or specialized domain.)*
@@ -29,22 +29,11 @@ List every available agent command, available characters for custom roles, and t
 {{#if hasCustomRoles}}
 ## Custom Roles
 
-| Character | Command | Alias | Role |
-|-----------|---------|-------|------|
-{{#each customRoles}}| {{character}} | `/{{command}}` | `/{{file}}` | {{name}} |
+| Character | Command | Alias | Role | Description |
+|-----------|---------|-------|------|-------------|
+{{#each customRoles}}| {{character}} | `/{{command}}` | `/{{file}}` | {{name}} | {{{description}}} |
 {{/each}}
 {{/if}}
-
-## Available Characters for Custom Roles
-
-These characters are available to assign when adding a new custom role:
-
-| Character | Command | Trait |
-|-----------|---------|-------|
-{{#each reserveCharacters}}| {{character}} | `/{{command}}` | {{trait}} |
-{{/each}}
-
-To add a new role, create a skill file manually in `.claude/commands/` using any agent file as a template.
 
 ## Utilities
 
