@@ -8,7 +8,7 @@ const program = new Command();
 
 program
   .name('agentic-crew')
-  .description('Scaffold a full AI engineering team into any Claude Code project')
+  .description('Scaffold a full AI engineering team into any project')
   .version('0.1.0');
 
 program

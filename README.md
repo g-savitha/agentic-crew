@@ -1,6 +1,6 @@
 # agentic-crew
 
-> Scaffold a full AI engineering team into any Claude Code project — 18 specialized agents, Demon Slayer personas, wired and ready in 60 seconds.
+> Scaffold a full AI engineering team into any project — Harry Potter personas, wired and ready in 60 seconds.
 
 ```bash
 npx agentic-crew init
@@ -10,35 +10,49 @@ npx agentic-crew init
 
 ## What Is This?
 
-`agentic-crew` gives you a complete AI-powered engineering team that lives inside your Claude Code project. Each agent is a specialized Claude Code skill — you invoke them with `/manager`, `/backend`, `/qa`, etc. They communicate asynchronously through files, coordinate via a shared backlog, and report to you as the **CEO**.
+`agentic-crew` gives you a complete AI-powered engineering team that lives inside your project. Each agent is a skill file you invoke by name — `/dumbledore`, `/hermione`, `/moody`, etc. They communicate asynchronously through flat files, coordinate via a shared backlog, and report to you.
 
-You bring the ideas. The corps executes.
+You bring the ideas. The Order executes.
 
 ---
 
-## The Corps
+## The Order of the Phoenix
 
-| Character | Role | Skill |
-|-----------|------|-------|
-| Tanjiro Kamado | Engineering Manager | `/manager` |
-| Rengoku Kyojuro | Scrum Master | `/scrum` |
-| Kiriya Ubuyashiki | Product Owner | `/po` |
-| Giyu Tomioka | Staff Engineer | `/staff-engineer` |
-| Zenitsu Agatsuma | Backend Developer | `/backend` |
-| Gyomei Himejima | System Architect | `/architect` |
-| Shinobu Kocho | QA Engineer | `/qa` |
-| Tengen Uzui | DevOps Engineer | `/devops` |
-| Obanai Iguro | Security Engineer | `/security` |
-| Muichiro Tokito | Domain Expert | `/networking` |
-| Yoriichi Tsugikuni | Documentation Engineer | `/documentation` |
-| Kanao Tsuyuri | Researcher | `/researcher` |
-| Inosuke Hashibira | Release Manager | `/release-manager` |
-| Mitsuri Kanroji | Marketing | `/marketing` |
-| Sanemi Shinazugawa | Performance Engineer | `/perf` |
-| Nezuko Kamado | Site Reliability Engineer | `/sre` |
-| Kagaya Ubuyashiki | Technical Program Manager | `/tpm` |
+### Always included
 
-Plus a `/setup` bootstrap meta-skill and support for custom roles.
+| Character | Command | Alias | Role |
+|-----------|---------|-------|------|
+| Albus Dumbledore | `/dumbledore` | `/manager` | Engineering Manager |
+| Ron Weasley | `/ron` | `/scrum` | Scrum Master |
+| Draco Malfoy | `/draco` | `/po` | Product Owner |
+| Hermione Granger | `/hermione` | `/staff-engineer` | Staff Engineer |
+| Minerva McGonagall | `/mcgonagall` | `/architect` | System Architect |
+| Mad-Eye Moody | `/moody` | `/qa` | QA Engineer |
+| George Weasley | `/george` | `/devops` | DevOps Engineer |
+| Severus Snape | `/snape` | `/security` | Security Engineer |
+| Cedric Diggory | `/cedric` | `/documentation` | Documentation Engineer |
+| Luna Lovegood | `/luna` | `/researcher` | Researcher |
+| Oliver Wood | `/oliver` | `/release-manager` | Release Manager |
+| Gilderoy Lockhart | `/lockhart` | `/marketing` | Marketing |
+| Viktor Krum | `/krum` | `/perf` | Performance Engineer |
+| Dobby | `/dobby` | `/sre` | Site Reliability Engineer |
+| Voldemort | `/voldemort` | `/tpm` | Technical Program Manager |
+
+### Added based on your stack
+
+| Selection | Character | Command | Role |
+|-----------|-----------|---------|------|
+| Any frontend | Ginny Weasley | `/ginny` | Frontend Developer |
+| Any backend | Harry Potter | `/harry` | Backend Developer |
+| ML / AI domain | Nicolas Flamel | `/flamel` | ML / AI Engineer |
+| Databases domain | Arthur Weasley | `/arthur` | Database Engineer |
+| Mobile domain | Neville Longbottom | `/neville` | Mobile Developer |
+| Game dev domain | J.K. Rowling | `/rowling` | Game Developer |
+| Embedded / Systems | Charlie Weasley | `/charlie` | Systems Engineer |
+| Blockchain / Web3 | Sirius Black | `/sirius` | Blockchain Developer |
+| Networking | Nymphadora Tonks | `/tonks` | Networking Expert |
+
+Every agent has two commands — their character name and their role alias. Both work identically.
 
 ---
 
@@ -48,18 +62,19 @@ Plus a `/setup` bootstrap meta-skill and support for custom roles.
 # Install globally
 npm install -g agentic-crew
 
-# Or run directly with npx
+# Or run directly
 npx agentic-crew init
 ```
 
-The CLI will ask you:
+Answer a few questions:
+
 - Project name and description
-- Frontend stack (React, Next.js, Vue, Svelte, Angular, or custom)
-- Backend stack (Go, Python, Node.js, Rust, Java, Ruby, .NET, or custom)
-- Specialized technical domain (Networking, ML/AI, Databases, Mobile, etc.)
+- Frontend stack (React, Next.js, Vue, Svelte, Angular, or none)
+- Backend stack (Go, Python, Node.js, Rust, Java, Ruby, .NET, or none)
+- Specialized domain (ML/AI, Databases, Mobile, Game Dev, Embedded, Blockchain, Networking)
 - Any custom roles you want to add
 
-Then it scaffolds everything into your project.
+Then run `/lumos` in your IDE to see every available command.
 
 ---
 
@@ -68,19 +83,19 @@ Then it scaffolds everything into your project.
 ```
 your-project/
   .claude/
-    commands/           ← 18+ agent skill files, personalized to your stack
+    commands/           ← agent skill files (one per role + character-name aliases)
   .agent/
     status/             ← each agent's current state
-    messages/           ← each agent's inbox (async communication)
+    messages/           ← each agent's inbox
     backlog/
-      tasks.md          ← product task list (Backlog / In Progress / Done)
-    reports/            ← generated reports (heartbeat, release history, etc.)
+      tasks.md          ← task list (Backlog / In Progress / Done)
+    reports/            ← generated reports and release history
   docs/
     wiki/
       11-troubleshooting.md   ← living troubleshooting guide
     adr/
       template.md             ← Architecture Decision Record template
-    runbooks/                 ← operational runbooks
+    runbooks/
 ```
 
 ---
@@ -89,76 +104,67 @@ your-project/
 
 ```mermaid
 graph TD
-    CEO([You — CEO]) -->|directive| MGR[/manager\nTanjiro]
-    MGR -->|broadcast| PO[/po\nKiriya]
-    MGR -->|broadcast| SCR[/scrum\nRengoku]
-    MGR -->|broadcast| BE[/backend\nZenitsu]
-    MGR -->|broadcast| ARC[/architect\nGyomei]
-    MGR -->|broadcast| QA[/qa\nShinobu]
-    MGR -->|broadcast| DEV[/devops\nTengen]
-    MGR -->|broadcast| SEC[/security\nObanai]
-    MGR -->|broadcast| DOC[/documentation\nYoriichi]
-    BE -->|PR| SE[/staff-engineer\nGiyu]
+    You([You]) -->|directive| MGR[/dumbledore\nEngineering Manager]
+    MGR -->|broadcast| PO[/draco\nProduct Owner]
+    MGR -->|broadcast| SCR[/ron\nScrum Master]
+    MGR -->|broadcast| BE[/harry\nBackend Developer]
+    MGR -->|broadcast| ARC[/mcgonagall\nArchitect]
+    MGR -->|broadcast| QA[/moody\nQA Engineer]
+    MGR -->|broadcast| DEV[/george\nDevOps]
+    MGR -->|broadcast| SEC[/snape\nSecurity]
+    MGR -->|broadcast| DOC[/cedric\nDocumentation]
+    BE -->|PR| SE[/hermione\nStaff Engineer]
     SE -->|review| BE
     QA -->|bug report| BE
-    DOC -->|troubleshooting\nentries| wiki[(docs/wiki)]
     BE & QA & DEV & SEC -->|solved problems| DOC
+    DOC -->|entries| wiki[(docs/wiki)]
 ```
 
-Each agent communicates by reading and writing files in `.agent/`. No live connections, no shared memory — just files. This means every agent can be invoked independently, in any order, and picks up exactly where the last one left off.
+Agents communicate by reading and writing files in `.agent/`. No live connections, no shared memory — just files. Every agent can be invoked independently, in any order, and picks up exactly where the last one left off.
 
 ---
 
-## Invoking Agents
+## Addressing Agents
 
-Open your project in Claude Code, then:
+Speak to them by name or by role — both work:
 
 ```
-/manager check team status and unblock anyone who's stuck
-/backend implement the user authentication flow from the backlog
-/qa run a full bug hunt on the auth module
-/architect draft an ADR for the session token storage approach
-/documentation write the auth system wiki page
-/release-manager cut v1.0.0
+/dumbledore check team status and unblock anyone who's stuck
+/hermione please review the PR at #42
+/moody run a full bug hunt on the auth module
+/snape security review the new API endpoints
+/oliver cut v1.0.0
 ```
 
-The CEO (`you`) sets direction. The Manager orchestrates. Everyone else executes.
+Run `/lumos` anytime to see all available commands for your project.
 
 ---
 
 ## Custom Roles
 
-During `agentic-crew init`, you can add custom roles. Each custom role gets:
-- A scaffolded skill file (`.claude/commands/<role>.md`)
-- A Demon Slayer character persona (suggested from reserve characters)
+During `agentic-crew init`, you can add custom roles beyond the defaults. Each custom role gets:
+
+- A skill file in `.claude/commands/`
+- A randomly assigned Harry Potter character persona
+- A character-named command alias
 - Status and message files in `.agent/`
-
----
-
-## Customizing the Domain Expert
-
-The `/networking` agent is a **domain expert template**. By default it covers your project's technical domain. If you want to rename it:
-
-1. Rename `.claude/commands/networking.md` to `.claude/commands/databases.md` (or whatever fits)
-2. Update the skill descriptions inside
-3. The skill is now `/databases`
 
 ---
 
 ## Philosophy
 
 - **File-based async** — agents communicate through files, not shared state. Reliable, inspectable, version-controllable.
-- **CEO-owned** — you define success. Agents execute. No agent makes product decisions.
-- **Persistent state** — status files and backlog survive between Claude Code sessions.
+- **You set direction** — agents execute. No agent makes product decisions without you.
+- **Persistent state** — status files and backlog survive between sessions.
 - **Troubleshooting as knowledge** — every solved problem gets documented. The team gets smarter over time.
-- **Definition of done** — a feature isn't done until tests pass, docs are updated, and a troubleshooting entry is filed if a tricky problem was solved.
+- **Works with any agentic IDE** — Claude Code, Cursor, Codex, or anything that supports slash-command skill files.
 
 ---
 
 ## Requirements
 
-- [Claude Code](https://claude.ai/code) (Claude Code CLI, desktop, or IDE extension)
 - Node.js ≥ 18
+- Any agentic IDE that supports slash-command skill files
 
 ---
 
