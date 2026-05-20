@@ -1,6 +1,6 @@
 /**
- * Theme packs — persona layer separated from core agent protocol.
- * Core agent files (manager, qa, etc.) are shared; themes control aliases and catalog.
+ * Built-in theme packs — persona layer separated from core agent protocol.
+ * Custom npm theme packs ship in a future release.
  */
 
 const PHOENIX = {
@@ -29,7 +29,7 @@ const THEME_PACKS = {
 const THEMES = Object.keys(THEME_PACKS);
 
 /**
- * @param {'phoenix' | 'professional'} themeId
+ * @param {'phoenix' | 'professional'} [themeId]
  */
 function getThemePack(themeId) {
   return THEME_PACKS[themeId] || THEME_PACKS.phoenix;
@@ -53,6 +53,8 @@ function applyThemePack(agent, themeId) {
 module.exports = {
   THEME_PACKS,
   THEMES,
+  PHOENIX,
+  PROFESSIONAL,
   getThemePack,
   applyThemePack,
 };

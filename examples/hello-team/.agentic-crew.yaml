@@ -2,7 +2,6 @@ name: hello-team
 description: Minimal example app scaffolded with agentic-crew
 frontend: react
 backend: nodejs
-target: cursor
+target: claude
 preset: startup
-theme: professional
 yes: true

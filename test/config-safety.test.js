@@ -37,7 +37,7 @@ describe('config YAML safety', () => {
       backend: 'go',
       domains: ['ml', 'data'],
       targets: 'all',
-      theme: 'professional',
+      theme: 'phoenix',
       preset: 'startup',
       withSecurityCi: true,
       withGitignore: true,
@@ -108,6 +108,13 @@ describe('preset theme precedence', () => {
       theme: 'phoenix',
     });
     assert.equal(answers.theme, 'professional');
+  });
+
+  it('rejects unknown --theme', () => {
+    assert.throws(
+      () => answersFromOptions({ name: 'x', yes: true, preset: 'full', theme: 'custom-theme' }),
+      /Invalid --theme/
+    );
   });
 });
 

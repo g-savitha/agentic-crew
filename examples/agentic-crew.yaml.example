@@ -18,7 +18,6 @@ target: all
 
 # full | minimal | enterprise | startup
 preset: startup
-
 theme: professional
 
 # optionalRoles:

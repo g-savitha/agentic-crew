@@ -1,0 +1,30 @@
+# Release runbook — hello-team
+
+> **Owner**: Release Manager / DevOps. Update this doc when the release process changes.
+
+## Preconditions
+
+- [ ] All P0/P1 backlog items for the release are in **Done** on `.agent/backlog/tasks.md`
+- [ ] QA sign-off on the release candidate
+- [ ] Security scan clean (or accepted exceptions documented)
+- [ ] Changelog / release notes drafted
+
+## Steps
+
+1. **Freeze** — announce code freeze in `.agent/messages/manager.md`
+2. **Tag** — create version tag from `main` (follow your repo's tagging convention)
+3. **Build** — run production build for Node.js + React (TypeScript, Vite or CRA, React Router)
+4. **Deploy** — promote artifact to staging, smoke test, then production
+5. **Verify** — confirm health checks, error rates, and critical user paths
+6. **Announce** — post release notes; update `.agent/reports/heartbeat.md` accomplishments
+
+## Rollback
+
+1. Revert to previous known-good deployment artifact
+2. Notify CEO and Manager via `.agent/messages/manager.md`
+3. Open incident runbook if customer impact: `docs/runbooks/incident.md`
+
+## Post-release
+
+- [ ] Close release tasks on backlog
+- [ ] File troubleshooting entries for any release friction (`docs/wiki/11-troubleshooting.md`)

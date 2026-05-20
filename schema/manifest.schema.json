@@ -8,7 +8,7 @@
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "packageVersion": { "type": "string" },
     "scaffoldedAt": { "type": "string", "format": "date-time" },
-    "theme": { "type": "string", "minLength": 1 },
+    "theme": { "enum": ["phoenix", "professional"] },
     "catalogCommand": { "type": "string", "minLength": 1 },
     "preset": { "enum": ["full", "minimal", "enterprise", "startup"] },
     "targets": {

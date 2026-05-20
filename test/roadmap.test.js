@@ -7,7 +7,7 @@ const { scaffold, previewCommandFiles } = require('../src/scaffolder');
 const { runManifestMigrations } = require('../src/migrations');
 const { planUpdateChanges } = require('../src/plan-update');
 const { appendGitignoreRecommendations, SNIPPET_MARKER_START } = require('../src/gitignore');
-const { loadThemePack } = require('../src/theme-loader');
+const { getThemePack } = require('../src/themes');
 const { hashContent } = require('../src/hash');
 const { testScaffoldOpts } = require('./_helpers');
 
@@ -34,7 +34,7 @@ describe('previewCommandFiles', () => {
       frontend: 'none',
       backend: 'go',
       targets: 'claude',
-      theme: 'professional',
+      theme: 'phoenix',
       outputDir: tmp,
     });
     assert.ok(files.length > 0);
@@ -53,7 +53,7 @@ describe('planUpdateChanges', () => {
         frontend: 'none',
         backend: 'go',
         targets: 'claude',
-        theme: 'professional',
+        theme: 'phoenix',
         outputDir: tmp,
       },
       testScaffoldOpts({ force: true })
@@ -115,14 +115,9 @@ describe('gitignore scaffold', () => {
   });
 });
 
-describe('theme loader', () => {
-  it('loads built-in theme packs', () => {
-    const loaded = loadThemePack('phoenix');
-    assert.equal(loaded.source, 'builtin');
-    assert.equal(loaded.pack.id, 'phoenix');
-  });
-
-  it('throws for unknown themes without external pack', () => {
-    assert.throws(() => loadThemePack('nonexistent-theme-xyz'), /Unknown theme/);
+describe('built-in themes', () => {
+  it('exposes phoenix and professional packs', () => {
+    assert.equal(getThemePack('phoenix').catalogCommand, 'lumos');
+    assert.equal(getThemePack('professional').catalogCommand, 'help');
   });
 });

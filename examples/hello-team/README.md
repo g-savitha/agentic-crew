@@ -1,21 +1,26 @@
 # hello-team — minimal consumer example
 
-This folder shows how to configure **agentic-crew** without checking in a full IDE command tree.
+This folder shows how to configure **agentic-crew** and run a full scaffold.
 
 ## Try it
 
 From this directory:
 
 ```bash
-npx agentic-crew@1.0.0 init --yes --config .agentic-crew.yaml
-agentic-crew doctor --dir .
+npx agentic-crew@1.0.2 init --yes --config .agentic-crew.yaml
 agentic-crew doctor --dir . --strict
+```
+
+Or scaffold from the repo root:
+
+```bash
+npx agentic-crew init --yes --config examples/hello-team/.agentic-crew.yaml --output-dir examples/hello-team --force
 ```
 
 ## What you get
 
 - Skill files under `.cursor/commands/` (and other targets if `target: all`)
-- `.agent/` shared state (status, messages, backlog, heartbeat)
+- `.agent/` shared state (status, messages, backlog, heartbeat, retro)
 - Starter runbooks under `docs/runbooks/` (`release.md`, `on-call.md`, `incident.md`)
 - `.agentic-crew.json` manifest for `doctor` / `update`
 

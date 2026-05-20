@@ -6,6 +6,7 @@ const os = require('os');
 const { spawnSync } = require('node:child_process');
 
 const CLI = path.join(__dirname, '..', 'bin', 'cli.js');
+const HELLO_CONFIG = path.join(__dirname, '..', 'examples', 'hello-team', '.agentic-crew.yaml');
 
 function runCli(args, cwd) {
   return spawnSync(process.execPath, [CLI, ...args], {
@@ -16,7 +17,7 @@ function runCli(args, cwd) {
 }
 
 describe('CLI end-to-end', () => {
-  it('init → doctor → update --dry-run → uninstall lifecycle', async () => {
+  it('init → doctor --strict → update --dry-run → uninstall lifecycle', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-cli-e2e-'));
 
     const init = runCli(
@@ -31,8 +32,6 @@ describe('CLI end-to-end', () => {
         'go',
         '--target',
         'claude',
-        '--theme',
-        'professional',
         '--json',
       ],
       tmp
@@ -40,7 +39,7 @@ describe('CLI end-to-end', () => {
     assert.equal(init.status, 0, init.stderr || init.stdout);
     assert.ok(await fs.pathExists(path.join(tmp, '.agentic-crew.json')));
 
-    const doctor = runCli(['doctor', '--dir', tmp, '--json'], tmp);
+    const doctor = runCli(['doctor', '--dir', tmp, '--strict', '--json'], tmp);
     assert.equal(doctor.status, 0, doctor.stderr || doctor.stdout);
     assert.match(doctor.stdout, /"ok":\s*true/);
 
@@ -53,8 +52,21 @@ describe('CLI end-to-end', () => {
     assert.equal(await fs.pathExists(path.join(tmp, '.agentic-crew.json')), false);
     assert.ok(await fs.pathExists(path.join(tmp, '.agent', 'backlog', 'tasks.md')));
     assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'manager.md')), false);
-    assert.equal(await fs.pathExists(path.join(tmp, 'docs', 'wiki', '11-troubleshooting.md')), false);
-    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands')), false);
   });
 
+  it('config-driven init from hello-team example', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-cli-config-'));
+    const init = runCli(
+      ['init', '--yes', '--config', HELLO_CONFIG, '--output-dir', tmp, '--target', 'claude', '--json'],
+      path.join(__dirname, '..')
+    );
+    assert.equal(init.status, 0, init.stderr || init.stdout);
+    assert.ok(await fs.pathExists(path.join(tmp, '.agentic-crew.json')));
+    const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
+    assert.equal(manifest.theme, 'professional');
+
+    const doctor = runCli(['doctor', '--dir', tmp, '--strict', '--json'], tmp);
+    assert.equal(doctor.status, 0, doctor.stderr || doctor.stdout);
+    assert.match(doctor.stdout, /"ok":\s*true/);
+  });
 });

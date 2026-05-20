@@ -4,7 +4,6 @@ const { normalizeOptionalRoles, validateOptionalRoles } = require('./agents');
 const { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS } = require('./stacks');
 const { resolvePreset } = require('./presets');
 const { parseCustomRoles } = require('./options-parsers');
-const { loadThemePack } = require('./theme-loader');
 
 /**
  * Build init answers from merged CLI + config options.
@@ -21,13 +20,8 @@ function answersFromOptions(opts) {
   const customRoles = parseCustomRoles(opts.customRole);
   const presetDef = resolvePreset(opts.preset || 'startup');
   const theme = (presetDef.theme || opts.theme || 'phoenix').toLowerCase();
-  try {
-    loadThemePack(theme, { cwd: (opts.outputDir || '.').trim() || '.' });
-  } catch (err) {
-    throw new Error(
-      err.message ||
-        `Invalid --theme "${opts.theme}". Use built-in themes or install @agentic-crew/theme-<name>.`
-    );
+  if (!THEMES.includes(theme)) {
+    throw new Error(`Invalid --theme "${opts.theme}". Use: ${THEMES.join(', ')}`);
   }
 
   const targetRaw = opts.target || 'both';

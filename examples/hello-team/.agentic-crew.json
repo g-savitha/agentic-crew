@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "packageVersion": "1.0.2",
+  "scaffoldedAt": "2026-05-20T15:03:59.620Z",
+  "theme": "phoenix",
+  "catalogCommand": "lumos",
+  "targets": [
+    "claude"
+  ],
+  "preset": "startup",
+  "project": {
+    "name": "hello-team",
+    "description": "Minimal example app scaffolded with agentic-crew",
+    "githubRepo": ""
+  },
+  "stacks": {
+    "frontend": "react",
+    "backend": "nodejs",
+    "domains": []
+  },
+  "optionalRoles": [],
+  "agents": [
+    {
+      "file": "manager",
+      "role": "Engineering Manager",
+      "command": "dumbledore",
+      "character": "Albus Dumbledore"
+    },
+    {
+      "file": "scrum",
+      "role": "Scrum Master",
+      "command": "ron",
+      "character": "Ron Weasley"
+    },
+    {
+      "file": "po",
+      "role": "Product Owner",
+      "command": "draco",
+      "character": "Draco Malfoy"
+    },
+    {
+      "file": "staff-engineer",
+      "role": "Staff Engineer",
+      "command": "hermione",
+      "character": "Hermione Granger"
+    },
+    {
+      "file": "architect",
+      "role": "System Architect",
+      "command": "mcgonagall",
+      "character": "Minerva McGonagall"
+    },
+    {
+      "file": "qa",
+      "role": "QA Engineer",
+      "command": "moody",
+      "character": "Mad-Eye Moody"
+    },
+    {
+      "file": "devops",
+      "role": "DevOps Engineer",
+      "command": "george",
+      "character": "George Weasley"
+    },
+    {
+      "file": "security",
+      "role": "Security Engineer",
+      "command": "snape",
+      "character": "Severus Snape"
+    },
+    {
+      "file": "frontend",
+      "role": "Frontend Developer",
+      "command": "ginny",
+      "character": "Ginny Weasley"
+    },
+    {
+      "file": "backend",
+      "role": "Backend Developer",
+      "command": "harry",
+      "character": "Harry Potter"
+    }
+  ],
+  "customRoles": [],
+  "commandDirs": [
+    ".claude/commands"
+  ],
+  "supplementaryFiles": [],
+  "commandHashes": {
+    ".claude/commands/manager.md": "dbdc82ac49660cfda2dd876ad7c476443c96c60741426404e32ca7b438389a6c",
+    ".claude/commands/dumbledore.md": "3bab3d6131f822a800dd706f7614ff35c0cd65f223ad43242f9d5308d6e60251",
+    ".claude/commands/scrum.md": "cec65925b32ef5ef5e62f1035613e98991b45e4862303fc59ba21d2b24272468",
+    ".claude/commands/ron.md": "fd2da16caed4894ee6125ec62aa0a18e698e3f1744a814292568352318dbb91b",
+    ".claude/commands/po.md": "c7da1bd0393e7d7e8db780dd586321c651639a86408220e8b882fc23997a42e7",
+    ".claude/commands/draco.md": "f64f48851dda2e16cc6e52857c90c5cbbe46b1140b938d6b18af760b99dee9eb",
+    ".claude/commands/staff-engineer.md": "ea06fc0be7c1ec2eff2d8b0e6bd1daf58345cdee500bd826cd056f63f8d39aa8",
+    ".claude/commands/hermione.md": "880ce5570035b71019448d6e21b168526aab6d60fb9e708a3b8d9d593147b469",
+    ".claude/commands/architect.md": "98c743150a15244529191509ced5fc18214d4eeebd4915bdbdd5d027f2a6ed3c",
+    ".claude/commands/mcgonagall.md": "ba12850f3fea43b2cffa7934ac3f7cd8416970b0aebdf55d2575922aa2c1578f",
+    ".claude/commands/qa.md": "7c7dbca551ffb8c1a5354242c16b44acca62a6d4728544737b457114d68cb99c",
+    ".claude/commands/moody.md": "9500db9ec65b09b6026aac06ce3912d13e2743b3130e32b4965a4ebc2840ad62",
+    ".claude/commands/devops.md": "4fca7ab5fac54d28acb974c2949f88611859e63095cd751c72b7743ab7df90f8",
+    ".claude/commands/george.md": "4fc01f97f973ccb77f3e4ad54f3492fb007c31f7cf94345623aab2580f7f6094",
+    ".claude/commands/security.md": "9dcbaddcedfa60f2056f1299a65cfb75e452dacb463130b98340c9f61a38c0e2",
+    ".claude/commands/snape.md": "9959bd679f9232a4a16854f76143008a308ab9bebe4b1a3102ef7c17b178a13d",
+    ".claude/commands/frontend.md": "3d5614d9cad2e417259c647d95df930527b25383b80c9b767706cdd1fded97af",
+    ".claude/commands/ginny.md": "68a96cc98a61ee670c6363cf486c50adc1dfe2bcfc66f14c28751debce09a50c",
+    ".claude/commands/backend.md": "c0cfee78bf98cc876cb5ac5d705ae3f18168e084a3618d4226844aef21a4df7e",
+    ".claude/commands/harry.md": "bbfa1a0f2e3198933a1efcb25821ca91f7d2fa78924910ec47619199b4806ae3",
+    ".claude/commands/setup.md": "dd586efaf62f8761fd49ca52748bc8fea0e29465fa91810b756941beb3a84932",
+    ".claude/commands/lumos.md": "bcb957a89250494e9a4feaffeaa53771302ce51a76ea31fabeea2a28ffcb7400",
+    ".claude/commands/team.md": "a2fe97bb640738b874452a2efd73b9df56f6390e3c0fc51e7d18e9163994ac93"
+  },
+  "withSecurityCi": false
+}

@@ -1,0 +1,4 @@
+---
+agent: manager
+status: Idle
+---

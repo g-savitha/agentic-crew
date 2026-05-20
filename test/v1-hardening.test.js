@@ -28,7 +28,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -51,7 +51,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -71,7 +71,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -90,7 +90,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -115,7 +115,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -137,7 +137,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -161,7 +161,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -186,7 +186,7 @@ describe('v1 hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -199,6 +199,27 @@ describe('v1 hardening', () => {
     assert.ok(await fs.pathExists(path.join(tmp, 'docs', 'runbooks', 'release.md')));
     assert.ok(await fs.pathExists(path.join(tmp, 'docs', 'runbooks', 'on-call.md')));
     assert.ok(await fs.pathExists(path.join(tmp, 'docs', 'runbooks', 'incident.md')));
+  });
+
+  it('scaffolds retro.md for Scrum protocol', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-retro-'));
+    await scaffold(
+      {
+        projectName: 'retro-app',
+        frontend: 'none',
+        backend: 'none',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    const retro = await fs.readFile(path.join(tmp, '.agent', 'reports', 'retro.md'), 'utf8');
+    assert.match(retro, /Sprint retrospective/);
+    const doctor = await runDoctor(tmp, { strict: true, json: true, quiet: true });
+    assert.equal(doctor.ok, true);
   });
 
   it('config-driven init scaffolds security CI and runbooks', async () => {

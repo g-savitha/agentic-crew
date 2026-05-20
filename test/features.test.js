@@ -37,7 +37,7 @@ describe('config file support', () => {
       frontend: 'react',
       backend: 'go',
       target: 'claude',
-      theme: 'professional',
+      theme: 'phoenix',
       preset: 'minimal',
     });
 
@@ -100,7 +100,7 @@ describe('IDE targets', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'codex',
         preset: 'startup',
       },
@@ -130,7 +130,7 @@ describe('IDE targets', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'cursor',
         preset: 'startup',
       },
@@ -151,19 +151,16 @@ describe('IDE targets', () => {
 
   it('resolveAllAgents applies preset exclusions before stack agents', () => {
     const preset = resolvePreset('startup');
-    const agents = resolveAllAgents(
-      {
-        frontend: 'react',
-        backend: 'nodejs',
-        domains: [],
-        optionalRoles: [],
-        customRoles: [],
-        preset: preset.key,
-        presetExcludeFiles: preset.excludeFiles,
-        theme: 'professional',
-      },
-      'professional'
-    );
+    const agents = resolveAllAgents({
+      frontend: 'react',
+      backend: 'nodejs',
+      domains: [],
+      optionalRoles: [],
+      customRoles: [],
+      preset: preset.key,
+      presetExcludeFiles: preset.excludeFiles,
+      theme: 'phoenix',
+    });
     assert.equal(countAgents(agents), 10);
     assert.ok(!agents.some((a) => a.file === 'marketing'));
     assert.ok(!agents.some((a) => a.file === 'documentation'));
@@ -171,9 +168,34 @@ describe('IDE targets', () => {
     assert.ok(agents.some((a) => a.file === 'backend'));
   });
 
-  it('theme pack provides catalog and start command', () => {
+  it('theme packs provide catalog and start command', () => {
     assert.equal(getThemePack('phoenix').startCommand, 'dumbledore');
+    assert.equal(getThemePack('phoenix').catalogCommand, 'lumos');
+    assert.equal(getThemePack('professional').startCommand, 'manager');
     assert.equal(getThemePack('professional').catalogCommand, 'help');
+  });
+
+  it('scaffolds windsurf workflows with team router', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-windsurf-'));
+    await scaffold(
+      {
+        projectName: 'windsurf-app',
+        frontend: 'none',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'windsurf',
+        preset: 'startup',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    const team = path.join(tmp, '.windsurf', 'workflows', 'team.md');
+    assert.ok(await fs.pathExists(team));
+    const content = await fs.readFile(team, 'utf8');
+    assert.match(content, /Agent Router|\/team/);
+    assert.ok(await fs.pathExists(path.join(tmp, '.windsurf', 'workflows', 'lumos.md')));
   });
 
   it('heartbeat uses structured template', async () => {
@@ -186,7 +208,7 @@ describe('IDE targets', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })

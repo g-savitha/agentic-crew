@@ -1,14 +1,16 @@
 const path = require('path');
 const fs = require('fs-extra');
 const chalk = require('chalk');
-const { MANIFEST_FILENAME, PACKAGE_VERSION } = require('./constants');
+const { MANIFEST_FILENAME, PACKAGE_VERSION, THEMES } = require('./constants');
 const { migrateManifest, validateManifestStructure } = require('./manifest');
 const { hashContent } = require('./hash');
 const { resolveCommandDirs, resolveSafeProjectDir, relativeCommandPath } = require('./utils');
 const { scaffold } = require('./scaffolder');
 const { resolvePreset } = require('./presets');
 const { validateHeartbeatContent } = require('./heartbeat');
+const { validateStatusContent } = require('./status');
 const { RUNBOOK_SPECS } = require('./runbooks');
+const { resolveAllAgents } = require('./agents');
 
 /**
  * @param {object} manifest
@@ -110,11 +112,33 @@ async function runDoctor(projectDir = '.', options = {}) {
 
   const commandHashes = manifest.commandHashes || {};
 
+  if (manifest.theme && !THEMES.includes(manifest.theme)) {
+    const msg = `Manifest theme "${manifest.theme}" is not supported. Use: ${THEMES.join(', ')} (custom theme packs ship in a future release)`;
+    if (strict) issues.push(msg);
+    else warnings.push(msg);
+  }
+
+  const expectedAgents = resolveAllAgents(manifestToAnswers(manifest, root));
+  const manifestAgentFiles = new Set((manifest.agents || []).map((a) => a.file));
+  for (const agent of expectedAgents) {
+    if (!manifestAgentFiles.has(agent.file)) {
+      const msg = `Manifest missing agent "${agent.file}" for current stacks/preset`;
+      if (strict) issues.push(msg);
+      else warnings.push(msg);
+    }
+  }
+
   for (const agent of manifest.agents || []) {
     const statusFile = path.join(agentDir, 'status', `${agent.file}.md`);
     const messageFile = path.join(agentDir, 'messages', `${agent.file}.md`);
     if (!(await fs.pathExists(statusFile))) {
       issues.push(`Missing status file: .agent/status/${agent.file}.md`);
+    } else if (strict) {
+      const statusContent = await fs.readFile(statusFile, 'utf8');
+      const st = validateStatusContent(statusContent);
+      if (!st.valid) {
+        issues.push(`Status file .agent/status/${agent.file}.md invalid: ${st.reason}`);
+      }
     }
     if (!(await fs.pathExists(messageFile))) {
       issues.push(`Missing message file: .agent/messages/${agent.file}.md`);
@@ -157,6 +181,15 @@ async function runDoctor(projectDir = '.', options = {}) {
         }
       }
     }
+  }
+
+  const retro = path.join(agentDir, 'reports', 'retro.md');
+  if (!(await fs.pathExists(retro))) {
+    const msg = 'Missing .agent/reports/retro.md';
+    if (strict) issues.push(msg);
+    else warnings.push(msg);
+  } else {
+    ok.push('retro.md present');
   }
 
   const heartbeat = path.join(agentDir, 'reports', 'heartbeat.md');

@@ -1,8 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
-const Handlebars = require('handlebars');
 const { writeTrackedCommandFile } = require('./command-writer');
-const { resolveThemePack } = require('./theme-loader');
+const { getThemePack } = require('./themes');
 
 /**
  * Write AGENTS.md and Cursor rules that point at the agent team protocol.
@@ -18,6 +17,7 @@ async function writeSupplementaryOutputs({
   writerParams,
   overwriteGeneratedDocs,
 }) {
+  const themePack = getThemePack(theme);
   const written = [];
 
   if (supplementary.agentsMd) {
@@ -25,7 +25,7 @@ async function writeSupplementaryOutputs({
     const content = tpl({
       ...baseContext,
       allAgents,
-      themePack: resolveThemePack(theme, { cwd: outputDir }),
+      themePack,
     });
     if (overwriteGeneratedDocs || !(await fs.pathExists(supplementary.agentsMd))) {
       await fs.writeFile(supplementary.agentsMd, content);
@@ -38,7 +38,7 @@ async function writeSupplementaryOutputs({
     const content = tpl({
       ...baseContext,
       allAgents,
-      themePack: resolveThemePack(theme, { cwd: outputDir }),
+      themePack,
     });
     await fs.ensureDir(path.dirname(supplementary.cursorRule));
     if (overwriteGeneratedDocs || !(await fs.pathExists(supplementary.cursorRule))) {
@@ -55,12 +55,13 @@ async function writeSupplementaryOutputs({
  * @param {object} params
  */
 async function writeTeamRouter({ commandDirs, baseContext, allAgents, theme, loadTemplate, writerParams }) {
+  const themePack = getThemePack(theme);
   const tpl = loadTemplate('commands/team.md.hbs');
   const content = tpl({
     ...baseContext,
     allAgents,
-    themePack: resolveThemePack(theme, { cwd: baseContext.outputDir || '.' }),
-    startAgent: resolveThemePack(theme, { cwd: baseContext.outputDir || '.' }).startCommand,
+    themePack,
+    startAgent: themePack.startCommand,
   });
 
   for (const commandsDir of commandDirs) {

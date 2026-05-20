@@ -17,16 +17,11 @@ const { migrateManifest, buildManifest, validateManifestStructure, SCHEMA_VERSIO
 const { validateManifestSchema } = require('./manifest-schema-validator');
 const { pruneStaleFiles } = require('./prune');
 const { validateHeartbeatContent } = require('./heartbeat');
+const { validateStatusContent } = require('./status');
 const { writeStarterRunbooks, RUNBOOK_SPECS } = require('./runbooks');
 const { PRESETS, PRESET_KEYS, resolvePreset, applyPresetFilter } = require('./presets');
 const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
-const { getThemePack, applyThemePack, THEME_PACKS } = require('./themes');
-const {
-  loadThemePack,
-  loadExternalThemePack,
-  resolveThemePack,
-  catalogCommandForThemeId,
-} = require('./theme-loader');
+const { getThemePack, applyThemePack, THEME_PACKS, PHOENIX } = require('./themes');
 const { runManifestMigrations } = require('./migrations');
 const { planUpdateChanges } = require('./plan-update');
 const { appendGitignoreRecommendations } = require('./gitignore');
@@ -50,6 +45,7 @@ module.exports = {
   validateManifestSchema,
   pruneStaleFiles,
   validateHeartbeatContent,
+  validateStatusContent,
   writeStarterRunbooks,
   RUNBOOK_SPECS,
   resolvePreset,
@@ -60,10 +56,7 @@ module.exports = {
   getThemePack,
   applyThemePack,
   THEME_PACKS,
-  loadThemePack,
-  loadExternalThemePack,
-  resolveThemePack,
-  catalogCommandForThemeId,
+  PHOENIX,
   runManifestMigrations,
   planUpdateChanges,
   appendGitignoreRecommendations,

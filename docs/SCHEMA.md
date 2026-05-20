@@ -17,8 +17,8 @@ The file `.agentic-crew.json` is the contract between your project and the `agen
 
 | Field | Description |
 |-------|-------------|
-| `theme` | `phoenix` or `professional` (or external theme id) |
-| `preset` | `startup` (default for new installs), `full`, `minimal`, `enterprise` |
+| `theme` | `phoenix` (character names + aliases) or `professional` (role-based commands only) |
+| `preset` | `startup` (default for new installs), `full`, `minimal`, or `enterprise` |
 | `targets` | `both`, `all`, or individual IDE keys |
 | `supplementaryFiles` | e.g. `AGENTS.md`, `.cursor/rules/agentic-crew.mdc` |
 | `customRoles` | User-defined agents |
@@ -35,30 +35,16 @@ On `agentic-crew update`, structural migrations run automatically:
 
 Agent roster is **not** changed by migrations. To change team composition, re-run `init --force` or edit the manifest deliberately.
 
-## External theme packs (1.0+)
+## Themes
 
-Built-in themes: `phoenix`, `professional`. External packs install as `@agentic-crew/theme-<name>`.
+Built-in themes only:
 
-Reference implementation: [`packages/theme-sample`](../packages/theme-sample) (`@agentic-crew/theme-sample`).
+| Theme | Catalog | Start command | Style |
+|-------|---------|---------------|-------|
+| `phoenix` | `/lumos` | `/dumbledore` | Harry Potter personas + role aliases |
+| `professional` | `/help` | `/manager` | Role-based commands only |
 
-```bash
-npm install -D agentic-crew@1.0.0 @agentic-crew/theme-sample@1.0.0
-npx agentic-crew init --yes --name my-app --theme sample --preset startup
-```
-
-Theme packages export:
-
-```js
-module.exports = {
-  id: 'yourtheme',
-  catalogCommand: 'help',
-  startCommand: 'manager',
-  applyThemePack(agent) { /* ... */ },
-  agentOverrides: {
-    manager: { character: '...', command: '...' },
-  },
-};
-```
+Custom npm theme packs (`@agentic-crew/theme-*`) are planned for a future release.
 
 ## JSON Schema
 

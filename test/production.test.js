@@ -58,7 +58,7 @@ describe('production hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -112,7 +112,7 @@ describe('production hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -138,7 +138,7 @@ describe('production hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -165,7 +165,7 @@ describe('production hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
@@ -188,7 +188,7 @@ describe('production hardening', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
         preset: 'full',
       },
@@ -213,7 +213,7 @@ describe('pruneStaleFiles', () => {
       outputDir: tmp,
       commandDirs: [commandsDir],
       allAgents,
-      theme: 'professional',
+      theme: 'phoenix',
       agentDir: path.join(tmp, '.agent'),
       dryRun: true,
     });

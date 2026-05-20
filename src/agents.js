@@ -1,6 +1,5 @@
 const { UTILITY_COMMANDS } = require('./constants');
 const { applyThemePack } = require('./themes');
-const { loadThemePack } = require('./theme-loader');
 const { normalizeDomains, assertNoCollision } = require('./utils');
 
 /** @typedef {{ file: string, role: string, character: string, command?: string, trait: string, why: string, seniorBrief?: string, template?: string, domainKey?: string, customDomainLabel?: string }} AgentDefinition */
@@ -295,15 +294,8 @@ const KNOWN_DOMAIN_KEYS = new Set(Object.keys(CONDITIONAL_AGENTS.domain));
  * @param {'phoenix' | 'professional'} theme
  * @returns {AgentDefinition}
  */
-function applyTheme(agent, theme, options = {}) {
-  try {
-    const loaded = loadThemePack(theme, options);
-    const override = loaded.getAgentOverride(agent.file);
-    const base = override ? { ...agent, ...override } : agent;
-    return loaded.apply(base);
-  } catch {
-    return applyThemePack(agent, theme === 'professional' ? 'professional' : 'phoenix');
-  }
+function applyTheme(agent, theme = 'phoenix') {
+  return applyThemePack(agent, theme);
 }
 
 /**
@@ -395,7 +387,6 @@ function resolveActiveAgents(answers) {
 function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
   const conditional = resolveConditionalAgents(answers);
   const optional = resolveOptionalAgents(answers);
-  const themeOpts = answers.outputDir ? { cwd: answers.outputDir } : {};
   const customRoles = (answers.customRoles || []).map((r) =>
     applyTheme(
       enrichAgent({
@@ -410,8 +401,7 @@ function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
           `You own ${r.name} end-to-end: ${r.description} Apply senior-level judgment, clear communication, and production-grade execution.`,
         template: 'custom-role',
       }),
-      theme,
-      themeOpts
+      theme
     )
   );
 
@@ -421,7 +411,7 @@ function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
     : DEFAULT_AGENTS;
 
   const core = [...defaultAgents, ...conditional, ...optional]
-    .map((a) => applyTheme(a, theme, themeOpts))
+    .map((a) => applyTheme(a, theme))
     .map(enrichAgent);
   return [...core, ...customRoles];
 }

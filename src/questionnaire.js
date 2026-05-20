@@ -23,7 +23,6 @@ const {
 } = require('./agents');
 const { countAgents, assertNoCollision, slugify } = require('./utils');
 const { THEMES } = require('./constants');
-const { loadThemePack } = require('./theme-loader');
 const { IDE_TARGET_PROMPT_OPTIONS } = require('./targets');
 const { PRESETS, PRESET_KEYS, resolvePreset } = require('./presets');
 
@@ -120,15 +119,9 @@ async function runQuestionnaire() {
     initialValue: presetDef.theme || 'phoenix',
   });
   if (isCancel(theme)) { cancel('Cancelled.'); process.exit(0); }
-  if (THEMES.includes(theme)) {
-    // built-in
-  } else {
-    try {
-      loadThemePack(theme);
-    } catch {
-      cancel(`Unknown theme "${theme}". Install @agentic-crew/theme-<name> or pick phoenix/professional.`);
-      process.exit(0);
-    }
+  if (!THEMES.includes(theme)) {
+    cancel(`Unknown theme "${theme}". Use: ${THEMES.join(', ')}`);
+    process.exit(0);
   }
 
   const target = await select({

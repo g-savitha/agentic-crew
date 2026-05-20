@@ -37,7 +37,6 @@ const {
 } = require('./utils');
 const { writeSupplementaryOutputs, writeTeamRouter } = require('./supplementary');
 const { getThemePack } = require('./themes');
-const { resolveThemePack, catalogCommandForThemeId } = require('./theme-loader');
 const { writeStarterRunbooks } = require('./runbooks');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -107,9 +106,8 @@ async function scaffold(answers, options = {}) {
   const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
   const allAgents = resolveAllAgents(sanitizedAnswers, theme);
   const sanitizedCustomRoles = sanitizedAnswers.customRoles;
-  const themePack = resolveThemePack(theme, { cwd: outputDir });
+  const themePack = getThemePack(theme);
   const catalogCommand = themePack.catalogCommand;
-  const themeOpts = { cwd: outputDir };
 
   const baseContext = {
     outputDir,
@@ -273,9 +271,9 @@ async function scaffold(answers, options = {}) {
     const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
     const catalogCtx = {
       ...baseContext,
-      defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme, themeOpts)),
-      conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
-      optionalAgents: optionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
+      defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
+      conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
+      optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
       customRoles: sanitizedCustomRoles,
       hasConditionalAgents: conditionalAgents.length > 0,
       hasOptionalAgents: optionalAgents.length > 0,
@@ -338,6 +336,12 @@ async function scaffold(answers, options = {}) {
   const heartbeatPath = path.join(reportsDir, 'heartbeat.md');
   if (!(await fs.pathExists(heartbeatPath)) || overwriteGeneratedDocs) {
     await fs.writeFile(heartbeatPath, heartbeatTpl(baseContext));
+  }
+
+  const retroTpl = loadTemplate('agent/retro.md.hbs');
+  const retroPath = path.join(reportsDir, 'retro.md');
+  if (!(await fs.pathExists(retroPath)) || overwriteGeneratedDocs) {
+    await fs.writeFile(retroPath, retroTpl(baseContext));
   }
 
   await fs.writeFile(path.join(reportsDir, '.gitkeep'), '');
@@ -459,7 +463,7 @@ function printManifest(answers, result) {
   const { allAgents, commandDirs, agentCount } = result;
   const theme = result.theme ?? answers.theme ?? 'phoenix';
   const customRoles = answers.customRoles || [];
-  const themePack = resolveThemePack(theme, { cwd: result.outputDir });
+  const themePack = getThemePack(theme);
   const isProfessional = !themePack.useCharacterAliases;
 
   const defaultFiles = new Set(DEFAULT_AGENTS.map((a) => a.file));
@@ -472,6 +476,8 @@ function printManifest(answers, result) {
   console.log('\n' + chalk.bold.green('  Your engineering team is assembled:\n'));
   if (isProfessional) {
     console.log(chalk.dim('  Theme: professional (role-based commands only)\n'));
+  } else {
+    console.log(chalk.dim('  Theme: Order of the Phoenix (character names + role aliases)\n'));
   }
 
   console.log(chalk.dim('  ── Always included ─────────────────────────────────────────'));
@@ -511,7 +517,7 @@ function printManifest(answers, result) {
       chalk.dim(`Agents: ${agentCount} · Command dirs: `) +
       commandDirs.map((d) => chalk.white(path.relative(result.outputDir, d))).join(chalk.dim(', '))
   );
-  const catalogSlash = `/${catalogCommandForTheme(theme, { cwd: result.outputDir })}`;
+  const catalogSlash = `/${catalogCommandForTheme(theme)}`;
   console.log(
     '\n  ' +
       chalk.dim('Utilities: ') +
@@ -522,7 +528,7 @@ function printManifest(answers, result) {
       chalk.white(catalogSlash) +
       chalk.dim(' — show all commands')
   );
-  const startCmd = `/${resolveThemePack(theme, { cwd: result.outputDir }).startCommand}`;
+  const startCmd = `/${themePack.startCommand}`;
   console.log(
     '\n  ' +
       chalk.bold.yellow('✨ Ready.') +
@@ -548,9 +554,7 @@ function printAgentRows(agents, professional) {
   for (const a of agents) {
     const label = professional ? a.role : a.character;
     if (professional) {
-      console.log(
-        '  ' + chalk.cyan(label.padEnd(maxChar + 2)) + chalk.white(`/${a.file}`)
-      );
+      console.log('  ' + chalk.cyan(label.padEnd(maxChar + 2)) + chalk.white(`/${a.file}`));
       continue;
     }
     const cmd = a.command || a.file;
@@ -596,9 +600,8 @@ async function previewCommandFiles(answers, options = {}) {
   const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
   const allAgents = resolveAllAgents(sanitizedAnswers, theme);
   const sanitizedCustomRoles = sanitizedAnswers.customRoles;
-  const themePack = resolveThemePack(theme, { cwd: outputDir });
+  const themePack = getThemePack(theme);
   const catalogCommand = themePack.catalogCommand;
-  const themeOpts = { cwd: outputDir };
 
   const baseContext = {
     outputDir,
@@ -673,9 +676,9 @@ async function previewCommandFiles(answers, options = {}) {
       rel: path.relative(outputDir, path.join(commandsDir, `${catalogCmd}.md`)).replace(/\\/g, '/'),
       content: catalogTpl({
         ...baseContext,
-        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme, themeOpts)),
-        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
-        optionalAgents: optionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
+        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
+        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
+        optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
         customRoles: sanitizedCustomRoles,
         hasConditionalAgents: conditionalAgents.length > 0,
         hasOptionalAgents: optionalAgents.length > 0,

@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.2] - 2026-05-20
+
+### Added
+
+- **`.agent/reports/retro.md`** starter scaffold (Scrum retrospective protocol)
+- **`doctor --strict`** validates agent status frontmatter, manifest roster vs stacks/preset, and `retro.md`
+- README section: **vs CrewAI / LangGraph**
+- Windsurf scaffold test; extended CLI e2e (`--strict`, config-driven init)
+- Synced **`index.d.ts`** with public API (`validateStatusContent`, `validateHeartbeatContent`, `getThemePack`, …)
+
+### Changed
+
+- Built-in themes only: **`phoenix`** and **`professional`** (no custom npm theme packs yet)
+- README hero copy: you invoke the team; no implied autonomous execution
+- Presets no longer override theme (always Phoenix)
+- Manifest schema: `theme` enum is `phoenix` or `professional`
+
+### Removed
+
+- `packages/theme-sample`, `src/theme-loader.js`, and related tests/docs
+
 ## [1.0.1] - 2026-05-20
 
 ### Fixed

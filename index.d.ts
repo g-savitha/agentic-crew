@@ -16,11 +16,12 @@ export interface ScaffoldAnswers {
   optionalRoles?: string[];
   customRoles?: CustomRoleInput[];
   outputDir?: string;
-  theme?: 'phoenix' | 'professional' | string;
+  theme?: 'phoenix' | 'professional';
   targets?: string | string[];
   preset?: string;
   presetExcludeFiles?: Set<string>;
   withSecurityCi?: boolean;
+  withGitignore?: boolean;
 }
 
 export interface CustomRoleInput {
@@ -53,6 +54,7 @@ export interface ScaffoldResult {
   skippedFiles?: string[];
   pruned?: string[];
   supplementaryWritten?: string[];
+  theme?: string;
 }
 
 export interface AgentDefinition {
@@ -100,24 +102,54 @@ export interface UninstallResult {
   root: string;
 }
 
+export interface ThemePack {
+  id: string;
+  label: string;
+  catalogCommand: string;
+  useCharacterAliases: boolean;
+  startCommand: string;
+  catalogTitle: string;
+}
+
 export function scaffold(answers: ScaffoldAnswers, options?: ScaffoldOptions): Promise<ScaffoldResult>;
 export function runDoctor(
   projectDir?: string,
   options?: { fix?: boolean; prune?: boolean; strict?: boolean; json?: boolean; quiet?: boolean }
 ): Promise<DoctorResult>;
-export function runUpdate(projectDir?: string, options?: {
-  force?: boolean;
-  forceOverwrite?: boolean;
-  backup?: boolean;
-  dryRun?: boolean;
-  json?: boolean;
-}): Promise<UpdateResult>;
-export function runUninstall(projectDir?: string, options?: { keepState?: boolean; dryRun?: boolean }): Promise<UninstallResult>;
-export function resolveAllAgents(answers: ScaffoldAnswers, theme?: string): AgentDefinition[];
+export function runUpdate(
+  projectDir?: string,
+  options?: {
+    force?: boolean;
+    forceOverwrite?: boolean;
+    backup?: boolean;
+    dryRun?: boolean;
+    json?: boolean;
+  }
+): Promise<UpdateResult>;
+export function runUninstall(
+  projectDir?: string,
+  options?: { keepState?: boolean; dryRun?: boolean }
+): Promise<UninstallResult>;
+export function resolveAllAgents(answers: ScaffoldAnswers, theme?: 'phoenix' | 'professional'): AgentDefinition[];
 export function migrateManifest(manifest: object): object;
-export function loadProjectConfig(options?: { configPath?: string; startDir?: string }): Promise<{ config: object | null; configPath: string | null }>;
-export function loadThemePack(themeId: string, options?: { cwd?: string }): object;
-export function previewCommandFiles(answers: ScaffoldAnswers, options?: { isUpdate?: boolean }): Promise<Array<{ rel: string; content: string }>>;
-export function planUpdateChanges(root: string, answers: ScaffoldAnswers, manifest: object, options?: { forceOverwrite?: boolean }): Promise<{ wouldUpdate: PlannedFileChange[]; wouldPreserve: PlannedFileChange[] }>;
+export function loadProjectConfig(options?: {
+  configPath?: string;
+  startDir?: string;
+}): Promise<{ config: object | null; configPath: string | null }>;
+export function previewCommandFiles(
+  answers: ScaffoldAnswers,
+  options?: { isUpdate?: boolean }
+): Promise<Array<{ rel: string; content: string }>>;
+export function planUpdateChanges(
+  root: string,
+  answers: ScaffoldAnswers,
+  manifest: object,
+  options?: { forceOverwrite?: boolean }
+): Promise<{ wouldUpdate: PlannedFileChange[]; wouldPreserve: PlannedFileChange[] }>;
 export function runManifestMigrations(manifest: object): { manifest: object; applied: string[] };
 export function appendGitignoreRecommendations(outputDir: string): Promise<{ appended: boolean; gitignorePath: string }>;
+export function validateHeartbeatContent(content: string): { valid: boolean; reason?: string };
+export function validateStatusContent(content: string): { valid: boolean; reason?: string };
+export function writeStarterRunbooks(options: object): Promise<string[]>;
+export function getThemePack(themeId?: 'phoenix' | 'professional'): ThemePack;
+export function catalogCommandForTheme(theme?: 'phoenix' | 'professional'): string;

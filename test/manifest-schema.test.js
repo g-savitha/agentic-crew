@@ -8,7 +8,7 @@ describe('validateManifestSchema', () => {
     const issues = validateManifestSchema({
       schemaVersion: 1,
       packageVersion: '0.7.0',
-      theme: 'professional',
+      theme: 'phoenix',
       preset: 'startup',
       targets: 'claude',
       project: { name: 'app' },
@@ -18,11 +18,11 @@ describe('validateManifestSchema', () => {
     assert.deepEqual(issues, []);
   });
 
-  it('reports invalid preset and allows opaque theme ids', () => {
+  it('reports invalid preset and unknown theme', () => {
     const issues = validateManifestSchema({
       schemaVersion: 1,
       packageVersion: '1.0.0',
-      theme: 'sample',
+      theme: 'custom-pack',
       preset: 'bogus',
       targets: 'nope',
       project: { name: 'app' },
@@ -30,7 +30,7 @@ describe('validateManifestSchema', () => {
       commandDirs: [],
     });
     assert.ok(issues.some((i) => i.includes('preset')));
-    assert.equal(issues.some((i) => i.includes('theme')), false);
+    assert.ok(issues.some((i) => i.includes('theme')));
   });
 
   it('validateManifestStructure delegates to schema validator', () => {

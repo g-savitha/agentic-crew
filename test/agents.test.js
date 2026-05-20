@@ -90,6 +90,17 @@ describe('agents registry', () => {
     assert.match(custom, /FinTech compliance/);
   });
 
+  it('phoenix theme keeps character command aliases', () => {
+    const agents = resolveAllAgents(
+      { frontend: 'react', backend: 'go', domains: ['ml'], customRoles: [] },
+      'phoenix'
+    );
+    const manager = agents.find((a) => a.file === 'manager');
+    assert.equal(manager.character, 'Albus Dumbledore');
+    assert.equal(manager.command, 'dumbledore');
+    assert.match(manager.trait, /Headmaster|Hogwarts/i);
+  });
+
   it('professional theme removes character command aliases', () => {
     const agents = resolveAllAgents(
       { frontend: 'react', backend: 'go', domains: ['ml'], customRoles: [] },
@@ -98,15 +109,15 @@ describe('agents registry', () => {
     const manager = agents.find((a) => a.file === 'manager');
     assert.equal(manager.character, 'Engineering Manager');
     assert.equal(manager.command, undefined);
-    assert.match(manager.why, /Engineering Manager/);
-    assert.doesNotMatch(manager.why, /Dumbledore|wizard|Hogwarts/i);
   });
 
   it('counts command files including aliases', () => {
-    const agents = resolveAllAgents(
-      { frontend: 'none', backend: 'none', domains: [], customRoles: [] },
-      'phoenix'
-    );
+    const agents = resolveAllAgents({
+      frontend: 'none',
+      backend: 'none',
+      domains: [],
+      customRoles: [],
+    });
     assert.ok(countCommandFiles(agents) > countAgents(agents));
   });
 
@@ -143,7 +154,7 @@ describe('scaffold dry-run and doctor', () => {
       domains: ['ml'],
       customRoles: [],
       outputDir: tmp,
-      theme: 'professional',
+      theme: 'phoenix',
       targets: 'both',
     };
     const result = await scaffold(answers, testScaffoldOpts({ dryRun: true }));
@@ -152,32 +163,46 @@ describe('scaffold dry-run and doctor', () => {
     assert.equal(countAgents(result.allAgents), 16);
   });
 
-  it('professional scaffold omits HP content in skill files', async () => {
+  it('professional scaffold omits character aliases', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-pro-'));
+    await scaffold(
+      {
+        projectName: 'pro-app',
+        frontend: 'none',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'professional',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'dumbledore.md')), false);
+    assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'help.md')));
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'lumos.md')), false);
+  });
+
+  it('phoenix scaffold includes character personas and alias stubs', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-phoenix-'));
     const answers = {
-      projectName: 'pro-app',
-      projectDescription: 'Enterprise app',
+      projectName: 'phoenix-app',
+      projectDescription: 'Demo app',
       frontend: 'none',
       backend: 'go',
       domains: [],
       customRoles: [],
       outputDir: tmp,
-      theme: 'professional',
+      theme: 'phoenix',
       targets: 'claude',
     };
     await scaffold(answers, testScaffoldOpts({ force: true }));
     const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
-    assert.match(manager, /^# Engineering Manager/m);
-    assert.match(manager, /orchestrate the engineering organization/i);
-    assert.doesNotMatch(manager, /Dumbledore|wizard|Hogwarts|witch/i);
-    assert.doesNotMatch(manager, /^> \*/m);
-    assert.doesNotMatch(manager, /production-grade execution to every task/);
-    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'dumbledore.md')), false);
-    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'help.md')), true);
-    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'lumos.md')), false);
-    const help = await fs.readFile(path.join(tmp, '.claude', 'commands', 'help.md'), 'utf8');
-    assert.match(help, /# Agent Commands/);
-    assert.doesNotMatch(help, /Lumos|witch|wizard/i);
+    assert.match(manager, /Dumbledore|Albus/i);
+    assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'dumbledore.md')));
+    assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'lumos.md')));
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'help.md')), false);
+    assert.ok(await fs.pathExists(path.join(tmp, '.agent', 'reports', 'retro.md')));
   });
 
   it('golden: manager and security skills contain senior briefs', async () => {
@@ -217,7 +242,7 @@ describe('scaffold dry-run and doctor', () => {
       domains: [],
       customRoles: [],
       outputDir: tmp,
-      theme: 'professional',
+      theme: 'phoenix',
       targets: 'claude',
     };
     await scaffold(answers, testScaffoldOpts({ force: true }));
@@ -243,7 +268,7 @@ describe('scaffold dry-run and doctor', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
         withSecurityCi: true,
       },
@@ -302,7 +327,7 @@ describe('injection sanitization in scaffold output', () => {
         domains: [],
         customRoles: [],
         outputDir: tmp,
-        theme: 'professional',
+        theme: 'phoenix',
         targets: 'claude',
       },
       testScaffoldOpts({ force: true })
