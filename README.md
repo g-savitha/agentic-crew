@@ -4,7 +4,7 @@
 
 ```bash
 # Pin the version in scripts and CI (avoid bare `npx agentic-crew` in production)
-npx agentic-crew@1.0.2 init
+npx agentic-crew@1.0.3 init
 ```
 
 ---
@@ -43,19 +43,19 @@ Run from your repo root. Interactive mode walks you through stack and roster siz
 
 ```bash
 # Interactive (recommended)
-npx agentic-crew@1.0.2 init
+npx agentic-crew@1.0.3 init
 
 # Config-driven init (place .agentic-crew.yaml in project root)
 npx agentic-crew init --save-config   # writes example config after scaffold
 
 # All IDE targets + /team router
-npx agentic-crew@1.0.2 init --yes \
+npx agentic-crew@1.0.3 init --yes \
   --name "my-app" \
   --target all \
   --preset startup
 
 # Non-interactive — enterprise preset (lean roster, no marketing)
-npx agentic-crew@1.0.2 init --yes \
+npx agentic-crew@1.0.3 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
@@ -74,13 +74,13 @@ npx agentic-crew doctor
 npx agentic-crew doctor --fix
 
 # Refresh command templates (preserves user-edited skill files and docs)
-npx agentic-crew@1.0.2 update
+npx agentic-crew@1.0.3 update
 
 # Preview update changes
 npx agentic-crew update --dry-run
 
 # Replace user-edited skill files with latest templates
-npx agentic-crew@1.0.2 update --force-overwrite
+npx agentic-crew@1.0.3 update --force-overwrite
 
 # Remove scaffold artifacts (keep .agent/ state)
 npx agentic-crew uninstall --keep-state
@@ -338,7 +338,7 @@ Run **`agentic-crew doctor --strict`** in CI to catch drift — bad heartbeat fr
 
 ### Try it in five minutes
 
-1. `npx agentic-crew@1.0.2 init --yes --name my-app --frontend react --backend nodejs --preset startup`
+1. `npx agentic-crew@1.0.3 init --yes --name my-app --frontend react --backend nodejs --preset startup`
 2. `agentic-crew doctor --strict` — should pass with no issues
 3. In your IDE: `/team manager Review backlog and update heartbeat`
 4. Open `.agent/reports/heartbeat.md` — Manager should overwrite it with `blockers`, `decisions_needed`, etc.

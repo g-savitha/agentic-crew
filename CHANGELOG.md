@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 
 > **Note:** Sections for releases before **1.0.2** describe history as-shipped (e.g. external theme packs in 1.0.0 were removed in 1.0.2). Current behavior is defined by the latest release section and `docs/SCHEMA.md`.
 
+## [1.0.3] - 2026-05-20
+
+### Changed
+
+- Init questionnaire preview lists **preset-filtered** core agents (not all 13 when `startup` is selected)
+- Post-init CLI summary: phoenix theme closes with **Mischief managed.**; utilities show `/team` and `/lumos` only
+- **`/setup`** documented and templated as **repair-only** (init already scaffolds `.agent/`)
+- README polished for npm (professional tone, post-init flow, comparison section)
+
+### Fixed
+
+- Init summary **Core team** section respects preset exclusions (was labeling all default agents as included)
+
 ## [1.0.2] - 2026-05-20
 
 ### Added

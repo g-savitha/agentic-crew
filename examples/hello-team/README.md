@@ -7,7 +7,7 @@ This folder shows how to configure **agentic-crew** and run a full scaffold.
 From this directory:
 
 ```bash
-npx agentic-crew@1.0.2 init --yes --config .agentic-crew.yaml
+npx agentic-crew@1.0.3 init --yes --config .agentic-crew.yaml
 agentic-crew doctor --dir . --strict
 ```
 
