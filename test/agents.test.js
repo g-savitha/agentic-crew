@@ -6,9 +6,11 @@ const os = require('os');
 const {
   resolveAllAgents,
   resolveConditionalAgents,
+  resolveCatalogAgentGroups,
   validateCustomRoles,
   DEFAULT_AGENTS,
 } = require('../src/agents');
+const { resolvePreset } = require('../src/presets');
 const { SENIOR_BRIEFS, resolveSeniorBrief } = require('../src/role-briefs');
 const { countAgents, countCommandFiles, normalizeDomains } = require('../src/utils');
 const { scaffold } = require('../src/scaffolder');
@@ -23,6 +25,22 @@ const { testScaffoldOpts } = require('./_helpers');
 describe('agents registry', () => {
   it('defaults to 13 core agents (SRE and TPM are optional)', () => {
     assert.equal(DEFAULT_AGENTS.length, 13);
+  });
+
+  it('resolveCatalogAgentGroups respects startup preset exclusions', () => {
+    const preset = resolvePreset('startup');
+    const { defaultAgents } = resolveCatalogAgentGroups({
+      frontend: 'react',
+      backend: 'nodejs',
+      domains: [],
+      optionalRoles: [],
+      preset: preset.key,
+      presetExcludeFiles: preset.excludeFiles,
+      theme: 'phoenix',
+    });
+    assert.equal(defaultAgents.length, 8);
+    assert.ok(!defaultAgents.some((a) => a.file === 'documentation'));
+    assert.ok(!defaultAgents.some((a) => a.file === 'marketing'));
   });
 
   it('includes optional agents only when selected', () => {

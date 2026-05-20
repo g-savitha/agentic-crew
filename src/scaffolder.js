@@ -40,7 +40,7 @@ const {
 const { writeSupplementaryOutputs, writeTeamRouter } = require('./supplementary');
 const { getThemePack } = require('./themes');
 const { writeStarterRunbooks } = require('./runbooks');
-const { resolvePreset } = require('./presets');
+const { resolvePreset, PRESETS } = require('./presets');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const templateCache = new Map();
@@ -475,7 +475,10 @@ function printManifest(answers, result) {
   const themePack = getThemePack(theme);
   const isProfessional = !themePack.useCharacterAliases;
 
-  const defaultFiles = new Set(DEFAULT_AGENTS.map((a) => a.file));
+  const presetDef = resolvePreset(answers.preset || 'startup');
+  const defaultFiles = new Set(
+    DEFAULT_AGENTS.filter((a) => !presetDef.excludeFiles.has(a.file)).map((a) => a.file)
+  );
   const customFiles = new Set(customRoles.map((r) => r.file));
   const coreAgents = allAgents.filter((a) => defaultFiles.has(a.file));
   const extraAgents = allAgents.filter((a) => !defaultFiles.has(a.file) && !customFiles.has(a.file));
@@ -489,7 +492,8 @@ function printManifest(answers, result) {
     console.log(chalk.dim('  Theme: Order of the Phoenix (character names + role aliases)\n'));
   }
 
-  console.log(chalk.dim('  ── Always included ─────────────────────────────────────────'));
+  const presetShort = (PRESETS[presetDef.key]?.label || presetDef.key).split(' — ')[0];
+  console.log(chalk.dim(`  ── Core team (${presetShort}) ────────────────────────────────`));
   printAgentRows(coreAgents, isProfessional);
 
   if (stackAgents.length > 0) {
@@ -535,15 +539,16 @@ function printManifest(answers, result) {
       chalk.dim('Utilities: ') +
       chalk.white('/team') +
       chalk.dim(' — router   ') +
-      chalk.white('/setup') +
-      chalk.dim(' — bootstrap   ') +
       chalk.white(catalogSlash) +
       chalk.dim(' — show all commands')
   );
   const startCmd = `/${themePack.startCommand}`;
+  const closingLine = isProfessional
+    ? chalk.bold.green('Ready.')
+    : chalk.bold.yellow('⚡ Mischief managed.');
   console.log(
     '\n  ' +
-      chalk.bold.yellow('✨ Ready.') +
+      closingLine +
       chalk.dim(' Open your agentic IDE and run ') +
       chalk.white(startCmd) +
       chalk.dim(' to begin.\n') +

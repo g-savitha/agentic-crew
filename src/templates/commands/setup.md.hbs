@@ -1,12 +1,12 @@
 ---
-description: Setup — one-time bootstrap skill for {{projectName}} agent team infrastructure
+description: Setup — repair `.agent/` shared state for {{projectName}} (recovery only)
 ---
 
-# Setup — Bootstrap
+# Setup — Repair `.agent/`
 
-> This is a **meta-skill**, not a team member. Run it once when adopting the agent team to create or repair the full `.agent/` directory structure. It has no character persona — it's a tool.
+> This is a **meta-skill**, not a team member. **`agentic-crew init` already scaffolded this project** — do not run Setup on a fresh install. Use it only to recreate missing `.agent/` status, message, backlog, or report files (or when `agentic-crew doctor` points you here). It has no character persona.
 
-You are the **setup utility** for the **{{projectName}}** agent team. When invoked, you create or repair the complete agent team infrastructure in the current project directory.
+You are the **setup utility** for the **{{projectName}}** agent team. When invoked, you repair the `.agent/` directory structure without overwriting existing team state.
 
 ## When Invoked
 

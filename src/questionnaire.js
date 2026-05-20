@@ -11,13 +11,11 @@ const {
 const chalk = require('chalk');
 const { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS } = require('./stacks');
 const {
-  DEFAULT_AGENTS,
   OPTIONAL_AGENTS,
   OPTIONAL_ROLE_KEYS,
   RESERVE_CHARACTERS,
-  resolveConditionalAgents,
-  resolveOptionalAgents,
   resolveAllAgents,
+  resolveCatalogAgentGroups,
   buildReservedSlugs,
   validateCustomRoles,
 } = require('./agents');
@@ -157,12 +155,14 @@ async function runQuestionnaire() {
     preset: presetDef.key,
     presetExcludeFiles: presetDef.excludeFiles,
   };
-  const conditionalAgents = resolveConditionalAgents(draftAnswers);
-  const optionalAgents = resolveOptionalAgents(draftAnswers);
   const previewAgents = resolveAllAgents(draftAnswers, theme);
+  const { defaultAgents, conditionalAgents, optionalAgents } = resolveCatalogAgentGroups(
+    draftAnswers,
+    theme
+  );
 
   console.log('\n' + chalk.bold(`  Your team — ${countAgents(previewAgents)} agents:\n`));
-  printPreview(DEFAULT_AGENTS, theme);
+  printPreview(defaultAgents, theme);
   if (conditionalAgents.length > 0) {
     console.log(chalk.dim('\n  Added for your stack:\n'));
     printPreview(conditionalAgents, theme);
@@ -301,7 +301,8 @@ function printPreview(agents, theme) {
         chalk.cyan(label.padEnd(maxChar + 2)) +
         chalk.dim(a.role.padEnd(maxRole + 2)) +
         chalk.white(('/' + cmd).padEnd(maxCmd + 3)) +
-        chalk.dim(`or /${a.file}`)
+        chalk.dim(' · ') +
+        chalk.dim(`/${a.file}`)
     );
   }
 }
