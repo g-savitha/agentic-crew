@@ -10,6 +10,7 @@ const { resolvePreset } = require('../src/presets');
 const { resolveAllAgents } = require('../src/agents');
 const { countAgents } = require('../src/utils');
 const { getThemePack } = require('../src/themes');
+const { testScaffoldOpts } = require('./_helpers');
 
 /** @type {boolean | undefined} */
 let canWriteCursorDir;
@@ -106,7 +107,7 @@ describe('IDE targets', () => {
         targets: 'all',
         preset: 'startup',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
 
     assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'team.md')));
@@ -168,7 +169,7 @@ describe('IDE targets', () => {
         theme: 'professional',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const heartbeat = await fs.readFile(path.join(tmp, '.agent', 'reports', 'heartbeat.md'), 'utf8');
     assert.match(heartbeat, /blockers:/);

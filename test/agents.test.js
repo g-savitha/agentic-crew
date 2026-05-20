@@ -18,6 +18,7 @@ const { resolveStack } = require('../src/stacks');
 const { parseCustomRoles } = require('../src/options-parsers');
 const { PACKAGE_VERSION } = require('../src/constants');
 const { hashContent } = require('../src/hash');
+const { testScaffoldOpts } = require('./_helpers');
 
 describe('agents registry', () => {
   it('defaults to 13 core agents (SRE and TPM are optional)', () => {
@@ -145,7 +146,7 @@ describe('scaffold dry-run and doctor', () => {
       theme: 'professional',
       targets: 'both',
     };
-    const result = await scaffold(answers, { dryRun: true });
+    const result = await scaffold(answers, testScaffoldOpts({ dryRun: true }));
     assert.equal(result.dryRun, true);
     assert.equal(await fs.pathExists(path.join(tmp, '.agent')), false);
     assert.equal(countAgents(result.allAgents), 16);
@@ -164,7 +165,7 @@ describe('scaffold dry-run and doctor', () => {
       theme: 'professional',
       targets: 'claude',
     };
-    await scaffold(answers, { force: true });
+    await scaffold(answers, testScaffoldOpts({ force: true }));
     const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
     assert.match(manager, /^# Engineering Manager/m);
     assert.match(manager, /orchestrate the engineering organization/i);
@@ -193,7 +194,7 @@ describe('scaffold dry-run and doctor', () => {
         theme: 'phoenix',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
     assert.match(manager, /orchestrate the engineering organization/i);
@@ -219,14 +220,14 @@ describe('scaffold dry-run and doctor', () => {
       theme: 'professional',
       targets: 'claude',
     };
-    await scaffold(answers, { force: true });
+    await scaffold(answers, testScaffoldOpts({ force: true }));
     const managerPath = path.join(tmp, '.claude', 'commands', 'manager.md');
     await fs.writeFile(managerPath, '# USER CUSTOM\n');
 
-    await runUpdate(tmp, { forceOverwrite: false });
+    await runUpdate(tmp, { forceOverwrite: false, quiet: true });
     assert.match(await fs.readFile(managerPath, 'utf8'), /USER CUSTOM/);
 
-    await runUpdate(tmp, { forceOverwrite: true });
+    await runUpdate(tmp, { forceOverwrite: true, quiet: true });
     const after = await fs.readFile(managerPath, 'utf8');
     assert.doesNotMatch(after, /USER CUSTOM/);
     assert.match(after, /Engineering Manager/i);
@@ -246,7 +247,7 @@ describe('scaffold dry-run and doctor', () => {
         targets: 'claude',
         withSecurityCi: true,
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const workflow = path.join(tmp, '.github', 'workflows', 'security.yml');
     assert.ok(await fs.pathExists(workflow));
@@ -266,7 +267,7 @@ describe('scaffold dry-run and doctor', () => {
       theme: 'phoenix',
       targets: 'claude',
     };
-    const result = await scaffold(answers, { force: true });
+    const result = await scaffold(answers, testScaffoldOpts({ force: true }));
     assert.ok(await fs.pathExists(result.manifestPath));
     assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'manager.md')));
     assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'dumbledore.md')));
@@ -275,7 +276,7 @@ describe('scaffold dry-run and doctor', () => {
     const manifest = await fs.readJson(result.manifestPath);
     assert.equal(manifest.packageVersion, PACKAGE_VERSION);
 
-    const { ok } = await runDoctor(tmp);
+    const { ok } = await runDoctor(tmp, { quiet: true });
     assert.equal(ok, true);
   });
 });
@@ -304,7 +305,7 @@ describe('injection sanitization in scaffold output', () => {
         theme: 'professional',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const manager = await fs.readFile(path.join(tmp, '.claude', 'commands', 'manager.md'), 'utf8');
     assert.doesNotMatch(manager, /\{\{evil\}\}/);
