@@ -212,6 +212,7 @@ async function runDoctor(projectDir = '.', options = {}) {
   }
 
   if (fix && issues.length > 0) {
+    const fixedIssues = [...issues];
     const answers = manifestToAnswers(manifest, root);
     await scaffold(answers, {
       isUpdate: true,
@@ -220,7 +221,9 @@ async function runDoctor(projectDir = '.', options = {}) {
       prune: true,
       quiet: true,
     });
-    return runDoctor(root, { fix: false, json, quiet });
+    const after = await runDoctor(root, { fix: false, json, quiet });
+    after.fixed = fixedIssues;
+    return after;
   }
 
   const result = {

@@ -149,6 +149,7 @@ describe('production hardening', () => {
     const after = await runDoctor(tmp, { fix: true, json: true, quiet: true });
     assert.equal(after.ok, true);
     assert.ok(await fs.pathExists(statusPath));
+    assert.ok(after.fixed.length > 0);
   });
 
   it('uninstall removes tracked artifacts and can keep .agent', async () => {
@@ -170,6 +171,7 @@ describe('production hardening', () => {
     assert.ok(result.removed.some((f) => f.endsWith('.agentic-crew.json')));
     assert.ok(await fs.pathExists(path.join(tmp, '.agent', 'backlog', 'tasks.md')));
     assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'manager.md')), false);
+    assert.equal(await fs.pathExists(path.join(tmp, 'docs', 'wiki', '11-troubleshooting.md')), false);
   });
 
   it('new manifest includes schemaVersion', async () => {

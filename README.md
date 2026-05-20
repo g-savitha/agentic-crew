@@ -4,7 +4,7 @@
 
 ```bash
 # Pin the version — do not use bare `npx agentic-crew` in production (supply-chain risk)
-npx agentic-crew@0.4.0 init
+npx agentic-crew@0.7.0 init
 ```
 
 ---
@@ -21,19 +21,19 @@ You bring the ideas. The team executes.
 
 ```bash
 # Interactive (recommended) — pin version in scripts/CI
-npx agentic-crew@0.4.0 init
+npx agentic-crew@0.7.0 init
 
 # Config-driven init (place .agentic-crew.yaml in project root)
 npx agentic-crew init --save-config   # writes example config after scaffold
 
 # All IDE targets + /team router
-npx agentic-crew@0.4.0 init --yes \
+npx agentic-crew@0.7.0 init --yes \
   --name "my-app" \
   --target all \
   --preset startup
 
 # Non-interactive — enterprise preset (professional theme, lean roster)
-npx agentic-crew@0.4.0 init --yes \
+npx agentic-crew@0.7.0 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
@@ -52,13 +52,13 @@ npx agentic-crew doctor
 npx agentic-crew doctor --fix
 
 # Refresh command templates (preserves user-edited skill files and docs)
-npx agentic-crew@0.3.0 update
+npx agentic-crew@0.7.0 update
 
 # Preview update changes
 npx agentic-crew update --dry-run
 
 # Replace user-edited skill files with latest templates
-npx agentic-crew@0.3.0 update --force-overwrite
+npx agentic-crew@0.7.0 update --force-overwrite
 
 # Remove scaffold artifacts (keep .agent/ state)
 npx agentic-crew uninstall --keep-state
@@ -126,7 +126,7 @@ theme: professional
 withSecurityCi: true
 ```
 
-Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the output directory. CLI flags override config values.
+Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the output directory. CLI flags override config values. Use `--yes --name <name>` (or `--name` from config with `--yes`) for non-interactive init; a config file alone does not skip the questionnaire.
 
 ### `init` options
 
@@ -151,7 +151,7 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--force-overwrite` | Replace user-edited command skill files |
 | `--custom-role` | `Name|Description` — repeatable custom role |
 | `--with-security-ci` | Add `.github/workflows/security.yml` to the target project |
-| `--with-gitignore` | Append agentic-crew recommendations to `.gitignore` |
+| `--with-gitignore` | Append agentic-crew recommendations to `.gitignore` (or `withGitignore: true` in config) |
 | `--yes` | Skip questionnaire (requires `--name`) |
 | `--json` | Machine-readable JSON output |
 

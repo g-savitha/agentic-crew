@@ -10,13 +10,17 @@
     "scaffoldedAt": { "type": "string", "format": "date-time" },
     "theme": { "enum": ["phoenix", "professional"] },
     "catalogCommand": { "enum": ["lumos", "help"] },
-    "preset": { "enum": ["full", "minimal", "enterprise"] },
+    "preset": { "enum": ["full", "minimal", "enterprise", "startup"] },
     "targets": {
       "oneOf": [
-        { "type": "array", "items": { "enum": ["claude", "cursor"] } },
-        { "type": "string" }
+        {
+          "type": "array",
+          "items": { "enum": ["claude", "cursor", "codex", "windsurf"] }
+        },
+        { "enum": ["claude", "cursor", "codex", "windsurf", "both", "all"] }
       ]
     },
+    "supplementaryFiles": { "type": "array", "items": { "type": "string" } },
     "project": {
       "type": "object",
       "required": ["name"],

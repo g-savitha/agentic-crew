@@ -357,6 +357,23 @@ function normalizeOptionalRoles(optional) {
 }
 
 /**
+ * @param {string | string[]} optional
+ * @returns {string[]}
+ */
+function validateOptionalRoles(optional) {
+  if (!optional) return [];
+  const raw = Array.isArray(optional) ? optional : String(optional).split(',');
+  const requested = [...new Set(raw.map((k) => k.trim().toLowerCase()).filter(Boolean))];
+  const invalid = requested.filter((k) => !OPTIONAL_ROLE_KEYS.includes(k));
+  if (invalid.length > 0) {
+    throw new Error(
+      `Invalid optional role(s): ${invalid.join(', ')}. Use: ${OPTIONAL_ROLE_KEYS.join(', ')}`
+    );
+  }
+  return requested;
+}
+
+/**
  * @param {object} answers
  * @returns {AgentDefinition[]}
  */
@@ -464,6 +481,7 @@ module.exports = {
   KNOWN_DOMAIN_KEYS,
   applyTheme,
   normalizeOptionalRoles,
+  validateOptionalRoles,
   resolveConditionalAgents,
   resolveOptionalAgents,
   resolveActiveAgents,

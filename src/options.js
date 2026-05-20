@@ -1,6 +1,6 @@
 const { THEMES, IDE_TARGETS } = require('./constants');
 const { normalizeDomains, IDE_TARGETS: TARGET_KEYS } = require('./utils');
-const { normalizeOptionalRoles } = require('./agents');
+const { normalizeOptionalRoles, validateOptionalRoles } = require('./agents');
 const { FRONTEND_STACKS, BACKEND_STACKS, DOMAINS } = require('./stacks');
 const { resolvePreset } = require('./presets');
 const { parseCustomRoles } = require('./options-parsers');
@@ -19,7 +19,7 @@ function answersFromOptions(opts) {
 
   const customRoles = parseCustomRoles(opts.customRole);
   const presetDef = resolvePreset(opts.preset || 'full');
-  const theme = (opts.theme || presetDef.theme || 'phoenix').toLowerCase();
+  const theme = (presetDef.theme || opts.theme || 'phoenix').toLowerCase();
   if (!THEMES.includes(theme)) {
     throw new Error(`Invalid --theme "${opts.theme}". Use: ${THEMES.join(', ')}`);
   }
@@ -50,11 +50,12 @@ function answersFromOptions(opts) {
     domains,
     domain: domains[0] || 'none',
     customRoles,
-    optionalRoles: normalizeOptionalRoles(opts.optional || []),
+    optionalRoles: validateOptionalRoles(opts.optional || []),
     outputDir: (opts.outputDir || '.').trim() || '.',
     theme,
     targets: targetRaw,
     withSecurityCi: Boolean(opts.withSecurityCi),
+    withGitignore: Boolean(opts.withGitignore),
     preset: presetDef.key,
     presetExcludeFiles: presetDef.excludeFiles,
   };

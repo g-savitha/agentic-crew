@@ -38,15 +38,26 @@ const IDE_TARGET_PROMPT_OPTIONS = [
 
 /**
  * @param {string | string[]} targets
+ * @param {{ strict?: boolean }} [options]
  * @returns {CommandTarget[]}
  */
-function normalizeCommandTargets(targets) {
+function normalizeCommandTargets(targets, options = {}) {
   const raw = Array.isArray(targets) ? targets : String(targets || 'both').split(',');
-  const expanded = raw
-    .map((t) => t.trim().toLowerCase())
-    .flatMap((t) => TARGET_ALIASES[t] || [t]);
+  const tokens = raw.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const expanded = tokens.flatMap((t) => TARGET_ALIASES[t] || [t]);
+
+  if (options.strict) {
+    for (const token of tokens) {
+      if (!IDE_TARGETS.includes(token)) {
+        throw new Error(`Invalid target "${token}". Use: ${IDE_TARGETS.join(', ')}`);
+      }
+    }
+  }
 
   const valid = expanded.filter((t) => COMMAND_TARGET_KEYS.includes(t));
+  if (options.strict && valid.length === 0 && tokens.length > 0) {
+    throw new Error(`Invalid target(s). Use: ${IDE_TARGETS.join(', ')}`);
+  }
   return valid.length > 0 ? [...new Set(valid)] : ['claude', 'cursor'];
 }
 
