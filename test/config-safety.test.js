@@ -66,6 +66,30 @@ describe('config YAML safety', () => {
   });
 });
 
+describe('non-interactive config gate', () => {
+  it('config with name alone does not skip the questionnaire', () => {
+    const merged = mergeConfigWithOptions({ name: 'cfg-only' }, {});
+    assert.equal(answersFromOptions(merged), null);
+  });
+
+  it('config with name and yes runs non-interactive', () => {
+    const merged = mergeConfigWithOptions(
+      { name: 'cfg-app', yes: true, frontend: 'react' },
+      {}
+    );
+    const answers = answersFromOptions(merged);
+    assert.ok(answers);
+    assert.equal(answers.projectName, 'cfg-app');
+    assert.equal(answers.frontend, 'react');
+  });
+
+  it('CLI --yes with config name merges correctly', () => {
+    const merged = mergeConfigWithOptions({ name: 'from-config' }, { yes: true });
+    const answers = answersFromOptions(merged);
+    assert.equal(answers.projectName, 'from-config');
+  });
+});
+
 describe('invalid optional roles', () => {
   it('throws on unknown optional role keys', () => {
     assert.throws(

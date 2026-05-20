@@ -11,10 +11,10 @@ const { parseCustomRoles } = require('./options-parsers');
  * @returns {object | null}
  */
 function answersFromOptions(opts) {
-  if (!opts.name && !opts.yes) return null;
+  if (!opts.yes) return null;
 
   if (!opts.name) {
-    throw new Error('--name is required for non-interactive mode (or omit --yes to use the questionnaire).');
+    throw new Error('--name is required with --yes for non-interactive mode (or omit --yes to use the questionnaire).');
   }
 
   const customRoles = parseCustomRoles(opts.customRole);

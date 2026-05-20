@@ -3,6 +3,26 @@ const fs = require('fs-extra');
 const { MANIFEST_FILENAME } = require('./constants');
 const { migrateManifest } = require('./manifest');
 const { resolveSafeProjectDir } = require('./utils');
+/**
+ * Remove empty directories walking upward until a non-empty dir or project root.
+ * @param {string} dir
+ * @param {string} root
+ * @param {boolean} dryRun
+ * @param {string[]} removed
+ */
+async function removeEmptyParents(dir, root, dryRun, removed) {
+  let current = dir;
+  const rootResolved = path.resolve(root);
+  while (current.startsWith(rootResolved) && current !== rootResolved) {
+    if (!(await fs.pathExists(current))) break;
+    const entries = await fs.readdir(current);
+    if (entries.length > 0) break;
+    const rel = path.relative(rootResolved, current).replace(/\\/g, '/');
+    if (!removed.includes(rel)) removed.push(rel);
+    if (!dryRun) await fs.remove(current);
+    current = path.dirname(current);
+  }
+}
 
 /**
  * Remove agentic-crew scaffold artifacts from a project.
@@ -56,6 +76,15 @@ async function runUninstall(projectDir = '.', options = {}) {
     const catalog = manifest.catalogCommand || 'lumos';
     await removeTarget(path.join(commandsDir, `${catalog}.md`));
     await removeTarget(path.join(commandsDir, catalog === 'help' ? 'lumos.md' : 'help.md'));
+    if (!dryRun) {
+      await removeEmptyParents(commandsDir, root, dryRun, removed);
+    }
+  }
+
+  await removeTarget(path.join(root, '.cursor', 'rules', 'agentic-crew.mdc'));
+  if (!dryRun) {
+    await removeEmptyParents(path.join(root, '.cursor', 'rules'), root, dryRun, removed);
+    await removeEmptyParents(path.join(root, '.cursor'), root, dryRun, removed);
   }
 
   for (const rel of manifest.supplementaryFiles || []) {
@@ -63,7 +92,6 @@ async function runUninstall(projectDir = '.', options = {}) {
   }
 
   await removeTarget(path.join(root, 'AGENTS.md'));
-  await removeTarget(path.join(root, '.cursor', 'rules', 'agentic-crew.mdc'));
   await removeTarget(path.join(root, '.agentic-crew.yaml'));
   await removeTarget(manifestPath);
 
@@ -95,6 +123,10 @@ async function runUninstall(projectDir = '.', options = {}) {
 
   if (manifest.withSecurityCi) {
     await removeTarget(path.join(root, '.github', 'workflows', 'security.yml'));
+    if (!dryRun) {
+      await removeEmptyParents(path.join(root, '.github', 'workflows'), root, dryRun, removed);
+      await removeEmptyParents(path.join(root, '.github'), root, dryRun, removed);
+    }
   }
 
   if (!keepState) {
@@ -104,4 +136,4 @@ async function runUninstall(projectDir = '.', options = {}) {
   return { removed, keepState, dryRun, root };
 }
 
-module.exports = { runUninstall };
+module.exports = { runUninstall, removeEmptyParents };

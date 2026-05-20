@@ -54,5 +54,7 @@ describe('CLI end-to-end', () => {
     assert.ok(await fs.pathExists(path.join(tmp, '.agent', 'backlog', 'tasks.md')));
     assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'manager.md')), false);
     assert.equal(await fs.pathExists(path.join(tmp, 'docs', 'wiki', '11-troubleshooting.md')), false);
+    assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands')), false);
   });
+
 });
