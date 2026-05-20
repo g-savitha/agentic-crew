@@ -33,6 +33,7 @@ function expectedCommandFilenames(allAgents, theme) {
  */
 async function pruneStaleFiles({ outputDir, commandDirs, allAgents, theme, agentDir, dryRun = false }) {
   const expected = expectedCommandFilenames(allAgents, theme);
+  expected.add('team.md');
   const expectedAgentSlugs = new Set(allAgents.map((a) => a.file));
   const removed = [];
 

@@ -1,0 +1,33 @@
+---
+description: agentic-crew team protocol — shared state, roster, and routing
+globs:
+alwaysApply: true
+---
+
+# agentic-crew — {{projectName}}
+
+Multi-agent engineering team scaffolded by agentic-crew.
+
+## Invoke agents
+
+- **Router (recommended)**: `/team <agent> <task>` — delegates to the right specialist
+- **Manager**: `/{{themePack.startCommand}}`
+- **Catalog**: `/{{themePack.catalogCommand}}`
+
+## Roster
+
+{{#each allAgents}}- {{role}}: `/{{file}}`{{#if command}} (alias `/{{command}}`){{/if}}
+{{/each}}
+
+## Shared state (`.agent/`)
+
+| Path | Purpose |
+|------|---------|
+| `.agent/status/<agent>.md` | Current agent state |
+| `.agent/messages/<agent>.md` | Inbox (append only) |
+| `.agent/backlog/tasks.md` | Backlog / In Progress / Done |
+| `.agent/reports/heartbeat.md` | Manager check-in summary |
+
+Skill files live under `.cursor/commands/` (and other IDE dirs per manifest).
+
+See `.agent/README.md` and `AGENTS.md` for the full protocol.

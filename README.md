@@ -4,7 +4,7 @@
 
 ```bash
 # Pin the version — do not use bare `npx agentic-crew` in production (supply-chain risk)
-npx agentic-crew@0.3.0 init
+npx agentic-crew@0.4.0 init
 ```
 
 ---
@@ -21,10 +21,19 @@ You bring the ideas. The team executes.
 
 ```bash
 # Interactive (recommended) — pin version in scripts/CI
-npx agentic-crew@0.3.0 init
+npx agentic-crew@0.4.0 init
+
+# Config-driven init (place .agentic-crew.yaml in project root)
+npx agentic-crew init --save-config   # writes example config after scaffold
+
+# All IDE targets + /team router
+npx agentic-crew@0.4.0 init --yes \
+  --name "my-app" \
+  --target all \
+  --preset startup
 
 # Non-interactive — enterprise preset (professional theme, lean roster)
-npx agentic-crew@0.3.0 init --yes \
+npx agentic-crew@0.4.0 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
@@ -72,11 +81,52 @@ All commands support `--json` for scripting/CI.
 
 ### Programmatic API
 
+Use this when you want to run agentic-crew **from your own Node.js code** — CI generators, monorepo tooling, custom CLIs — without shelling out to the bin:
+
 ```js
-const { scaffold, runDoctor, runUpdate, runUninstall, PACKAGE_VERSION } = require('agentic-crew');
+const {
+  scaffold,       // write skill files + .agent/ from answers object
+  runDoctor,      // validate install; returns { ok, issues, warnings }
+  runUpdate,      // refresh templates from installed package version
+  runUninstall,   // remove scaffold artifacts
+  loadProjectConfig, // read .agentic-crew.yaml / .json
+  resolveAllAgents,  // compute roster from stack/preset answers
+} = require('agentic-crew');
+
+await scaffold({
+  projectName: 'my-app',
+  frontend: 'react',
+  backend: 'go',
+  domains: ['ml'],
+  theme: 'professional',
+  targets: 'all',
+  outputDir: './apps/web',
+}, { force: true });
 ```
 
+The CLI (`agentic-crew init`) is a thin wrapper around these functions. Import `agentic-crew/cli` only if you need the Commander program itself.
+
 Manifest JSON Schema: `require('agentic-crew/schema/manifest.schema.json')`
+
+### Config file (`.agentic-crew.yaml`)
+
+Check in a config file so teammates and CI get the same roster without memorizing flags:
+
+```yaml
+name: my-app
+description: A real-time collaboration tool
+frontend: nextjs
+backend: go
+domains:
+  - ml
+  - data
+target: all
+preset: startup
+theme: professional
+withSecurityCi: true
+```
+
+Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the output directory. CLI flags override config values.
 
 ### `init` options
 
@@ -90,9 +140,11 @@ Manifest JSON Schema: `require('agentic-crew/schema/manifest.schema.json')`
 | `--domain` | Comma-separated domains (`ml`, `data`, `networking`, …) |
 | `--domain-other` | Additional custom domain label |
 | `--optional` | Comma-separated optional roles: `sre`, `tpm` |
-| `--preset` | `full` (default), `minimal`, or `enterprise` |
+| `--preset` | `full` (default), `minimal`, `enterprise`, or `startup` |
 | `--theme` | `phoenix` (default) or `professional` |
-| `--target` | `claude`, `cursor`, or `both` (default) |
+| `--target` | `claude`, `cursor`, `codex`, `windsurf`, `both` (default), or `all` |
+| `--config` | Path to YAML/JSON config (auto-discovers `.agentic-crew.yaml`) |
+| `--save-config` | Write `.agentic-crew.yaml` after scaffold |
 | `--output-dir` | Directory to scaffold into (default `.`) |
 | `--dry-run` | Show planned output without writing |
 | `--force` | Allow init when `.agent/` already exists |
@@ -183,9 +235,14 @@ With `--theme professional`, only role-based commands (e.g. `/manager`) are gene
 ```
 your-project/
   .agentic-crew.json      ← manifest (schemaVersion, agents, stacks, file hashes)
+  .agentic-crew.yaml      ← optional config (--save-config)
   .github/workflows/      ← optional security.yml (--with-security-ci)
+  AGENTS.md               ← team map for Codex / --target all
   .claude/commands/       ← Claude Code skill files
-  .cursor/commands/       ← Cursor skill files (when --target both)
+  .cursor/commands/       ← Cursor skill files
+  .cursor/rules/          ← agentic-crew.mdc rule (when Cursor selected)
+  .codex/skills/          ← Codex skills (--target codex or all)
+  .windsurf/workflows/    ← Windsurf workflows (--target windsurf or all)
   .agent/
     status/               ← each agent's current state
     messages/             ← each agent's inbox (append-only)
@@ -205,7 +262,7 @@ Character commands (e.g. `/dumbledore`) are **alias stubs** that point to the ca
 
 Agents communicate by reading and writing files in `.agent/`. No live connections — just files. Every agent can be invoked independently and picks up where the last session left off.
 
-Use `/lumos` (Phoenix theme) or `/help` (professional theme) to list every command. Use `agentic-crew doctor` to verify the install.
+Use `/team <agent> <task>` to route to any specialist, `/lumos` (Phoenix theme) or `/help` (professional theme) to list every command. Use `agentic-crew doctor` to verify the install.
 
 ---
 
@@ -215,7 +272,7 @@ Use `/lumos` (Phoenix theme) or `/help` (professional theme) to list every comma
 - **You set direction** — agents execute; the CEO (you) decides product direction
 - **Persistent state** — status, messages, and backlog survive between sessions
 - **Single source of truth** — `.agentic-crew.json` records your roster for doctor/update
-- **IDE-flexible** — Claude Code and Cursor out of the box
+- **IDE-flexible** — Claude Code, Cursor, Codex, and Windsurf out of the box (`--target all`)
 - **Role-specific expertise** — each agent skill includes a tailored senior brief (not generic boilerplate)
 
 ---
@@ -223,7 +280,7 @@ Use `/lumos` (Phoenix theme) or `/help` (professional theme) to list every comma
 ## Requirements
 
 - Node.js ≥ 18
-- An agentic IDE that supports slash-command skill files (Claude Code, Cursor, etc.)
+- An agentic IDE that supports slash-command skill files (Claude Code, Cursor, Codex, Windsurf, etc.)
 
 ---
 

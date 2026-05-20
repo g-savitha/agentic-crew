@@ -1,4 +1,12 @@
 const path = require('path');
+const targetUtils = require('./targets');
+const {
+  normalizeCommandTargets,
+  resolveSupplementaryPaths,
+  serializeTargets,
+  IDE_TARGETS,
+} = targetUtils;
+const resolveTargetCommandDirs = targetUtils.resolveCommandDirs;
 
 /**
  * @param {string} value
@@ -35,41 +43,20 @@ function countCommandFiles(agents) {
 }
 
 /**
- * @param {string[]} targets
- * @param {string} outputDir
- * @returns {string[]}
+ * @param {string | string[]} targets
+ * @returns {import('./targets').CommandTarget[]}
  */
-function resolveCommandDirs(targets, outputDir) {
-  const normalized = normalizeTargets(targets);
-  const relative = [];
-  if (normalized.includes('claude')) relative.push('.claude', 'commands');
-  if (normalized.includes('cursor')) relative.push('.cursor', 'commands');
-
-  const dirs = [];
-  let segment = [];
-  for (const part of relative) {
-    if (part === 'commands') {
-      dirs.push(path.join(outputDir, ...segment, 'commands'));
-      segment = [];
-    } else {
-      segment.push(part);
-    }
-  }
-  return [...new Set(dirs)];
+function normalizeTargets(targets) {
+  return normalizeCommandTargets(targets);
 }
 
 /**
  * @param {string | string[]} targets
- * @returns {('claude' | 'cursor')[]}
+ * @param {string} outputDir
+ * @returns {string[]}
  */
-function normalizeTargets(targets) {
-  const raw = Array.isArray(targets) ? targets : String(targets || 'both').split(',');
-  const expanded = raw
-    .map((t) => t.trim().toLowerCase())
-    .flatMap((t) => (t === 'both' ? ['claude', 'cursor'] : [t]));
-
-  const valid = expanded.filter((t) => t === 'claude' || t === 'cursor');
-  return valid.length > 0 ? [...new Set(valid)] : ['claude', 'cursor'];
+function resolveCommandDirs(targets, outputDir) {
+  return resolveTargetCommandDirs(normalizeCommandTargets(targets), outputDir);
 }
 
 /**
@@ -130,8 +117,7 @@ function resolveSafeOutputDir(outputDir, cwd = process.cwd()) {
  * @returns {string}
  */
 function resolveSafeProjectDir(projectDir, cwd = process.cwd()) {
-  const resolved = resolveSafeOutputDir(projectDir || '.', cwd);
-  return resolved;
+  return resolveSafeOutputDir(projectDir || '.', cwd);
 }
 
 /**
@@ -154,4 +140,7 @@ module.exports = {
   resolveSafeOutputDir,
   resolveSafeProjectDir,
   relativeCommandPath,
+  resolveSupplementaryPaths,
+  serializeTargets,
+  IDE_TARGETS,
 };

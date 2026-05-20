@@ -1,6 +1,6 @@
 {
   "name": "agentic-crew",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Scaffold a full AI engineering team into any project — personas, wired and ready in 60 seconds.",
   "main": "src/api.js",
   "exports": {
@@ -33,7 +33,9 @@
     "agentic",
     "engineering-team",
     "cursor",
-    "claude"
+    "claude",
+    "codex",
+    "windsurf"
   ],
   "author": "Savitha Gollamudi",
   "license": "MIT",

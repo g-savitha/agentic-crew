@@ -1,4 +1,5 @@
 const { UTILITY_COMMANDS } = require('./constants');
+const { applyThemePack } = require('./themes');
 const { normalizeDomains, assertNoCollision } = require('./utils');
 
 /** @typedef {{ file: string, role: string, character: string, command?: string, trait: string, why: string, seniorBrief?: string, template?: string, domainKey?: string, customDomainLabel?: string }} AgentDefinition */
@@ -294,14 +295,7 @@ const KNOWN_DOMAIN_KEYS = new Set(Object.keys(CONDITIONAL_AGENTS.domain));
  * @returns {AgentDefinition}
  */
 function applyTheme(agent, theme) {
-  if (theme !== 'professional') return { ...agent };
-  return {
-    ...agent,
-    character: agent.role,
-    command: undefined,
-    trait: '',
-    why: `Owns ${agent.role} responsibilities for the team and reports to the CEO.`,
-  };
+  return applyThemePack(agent, theme);
 }
 
 /**

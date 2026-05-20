@@ -14,6 +14,11 @@ const PRESETS = {
     theme: 'professional',
     excludeFiles: ['marketing'],
   },
+  startup: {
+    label: 'Startup — minimal delivery team, professional theme',
+    theme: 'professional',
+    excludeFiles: ['marketing', 'researcher', 'release-manager', 'perf', 'documentation'],
+  },
 };
 
 const PRESET_KEYS = Object.keys(PRESETS);

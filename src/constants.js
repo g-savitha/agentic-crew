@@ -1,14 +1,12 @@
 const { version: PACKAGE_VERSION } = require('../package.json');
+const { THEMES, getThemePack } = require('./themes');
+const { IDE_TARGETS } = require('./targets');
 
-const THEMES = ['phoenix', 'professional'];
-
-const IDE_TARGETS = ['claude', 'cursor', 'both'];
-
-const UTILITY_COMMANDS = ['setup', 'lumos', 'help'];
+const UTILITY_COMMANDS = ['setup', 'lumos', 'help', 'team'];
 
 /** @param {'phoenix' | 'professional'} theme */
 function catalogCommandForTheme(theme) {
-  return theme === 'professional' ? 'help' : 'lumos';
+  return getThemePack(theme).catalogCommand;
 }
 
 /** Known domain keys that map to specialized templates */

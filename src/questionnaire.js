@@ -23,12 +23,14 @@ const {
 } = require('./agents');
 const { countAgents, assertNoCollision, slugify } = require('./utils');
 const { THEMES } = require('./constants');
+const { IDE_TARGET_PROMPT_OPTIONS } = require('./targets');
+const { PRESETS, PRESET_KEYS, resolvePreset } = require('./presets');
 
 async function runQuestionnaire() {
   intro(
     chalk.bold('\n  agentic-crew') +
       chalk.dim(' — your AI engineering team, assembled in 60 seconds\n') +
-      chalk.dim('  Works with Claude Code, Cursor, and other agentic IDEs\n')
+      chalk.dim('  Works with Claude Code, Cursor, Codex, Windsurf, and other agentic IDEs\n')
   );
 
   const project = await group(
@@ -95,23 +97,34 @@ async function runQuestionnaire() {
     domains.splice(domains.indexOf('other'), 1, custom.trim());
   }
 
+  const preset = await select({
+    message: 'Team size preset?',
+    options: PRESET_KEYS.map((key) => ({
+      value: key,
+      label: key,
+      hint: PRESETS[key].label,
+    })),
+    initialValue: 'full',
+  });
+  if (isCancel(preset)) { cancel('Cancelled.'); process.exit(0); }
+
+  const presetDef = resolvePreset(preset);
+
   const theme = await select({
     message: 'Persona theme?',
     options: [
       { value: 'phoenix', label: 'Order of the Phoenix', hint: 'Harry Potter character names + role aliases' },
       { value: 'professional', label: 'Professional', hint: 'Role-based commands only (enterprise-friendly)' },
     ],
+    initialValue: presetDef.theme || 'phoenix',
   });
   if (isCancel(theme)) { cancel('Cancelled.'); process.exit(0); }
   if (!THEMES.includes(theme)) { cancel('Cancelled.'); process.exit(0); }
 
   const target = await select({
-    message: 'IDE command directories?',
-    options: [
-      { value: 'both', label: 'Claude + Cursor', hint: '.claude/commands and .cursor/commands' },
-      { value: 'claude', label: 'Claude Code only' },
-      { value: 'cursor', label: 'Cursor only' },
-    ],
+    message: 'Where should skill files be written?',
+    options: IDE_TARGET_PROMPT_OPTIONS,
+    initialValue: 'both',
   });
   if (isCancel(target)) { cancel('Cancelled.'); process.exit(0); }
 
@@ -138,6 +151,8 @@ async function runQuestionnaire() {
     theme,
     optionalRoles,
     customRoles: [],
+    preset: presetDef.key,
+    presetExcludeFiles: presetDef.excludeFiles,
   };
   const conditionalAgents = resolveConditionalAgents(draftAnswers);
   const optionalAgents = resolveOptionalAgents(draftAnswers);
@@ -251,6 +266,8 @@ async function runQuestionnaire() {
     outputDir: (outputDir || '.').trim() || '.',
     theme,
     targets: target,
+    preset: presetDef.key,
+    presetExcludeFiles: presetDef.excludeFiles,
   };
 
   const totalAgents = countAgents(resolveAllAgents(finalAnswers, theme));

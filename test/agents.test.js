@@ -15,7 +15,7 @@ const { scaffold } = require('../src/scaffolder');
 const { runDoctor } = require('../src/doctor');
 const { runUpdate } = require('../src/update');
 const { resolveStack } = require('../src/stacks');
-const { parseCustomRoles } = require('../src/options');
+const { parseCustomRoles } = require('../src/options-parsers');
 const { PACKAGE_VERSION } = require('../src/constants');
 const { hashContent } = require('../src/hash');
 

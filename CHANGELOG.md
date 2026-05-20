@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.0] - 2026-05-19
+
+### Added
+
+- **Config files**: `.agentic-crew.yaml`, `.agentic-crew.config.json` — auto-loaded on init; `--config` and `--save-config`
+- **IDE targets**: `codex` (`.codex/skills/`), `windsurf` (`.windsurf/workflows/`), `all` (every target)
+- **Supplementary outputs**: root `AGENTS.md` (Codex/universal), `.cursor/rules/agentic-crew.mdc` (when Cursor selected)
+- **`/team` router command** — single entry point: `/team <agent> <task>`
+- **`startup` preset** — professional theme, lean delivery roster
+- **Theme packs** (`src/themes/`) — persona layer separated from core agent protocol
+- **Structured heartbeat schema** — YAML frontmatter with blockers, decisions_needed, accomplishments
+
+### Changed
+
+- `--target` accepts `claude | cursor | codex | windsurf | both | all`
+- Manager skill documents structured heartbeat format
+
 ## [0.3.0] - 2026-05-19
 
 ### Added

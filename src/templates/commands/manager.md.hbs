@@ -41,7 +41,23 @@ $ARGUMENTS
 - If task needs research → route to Researcher
 - If security raises an issue → prioritize it
 
-**Step 5 — Update heartbeat**: Write summary to `.agent/reports/heartbeat.md`.
+**Step 5 — Update heartbeat**: Overwrite `.agent/reports/heartbeat.md` with structured frontmatter:
+
+```yaml
+---
+updated: <ISO-8601>
+blockers:
+  - agent: <file>
+    issue: <description>
+    plan: <next step>
+decisions_needed:
+  - <what the CEO must decide>
+accomplishments:
+  - <what shipped or progressed since last check-in>
+---
+```
+
+Then add a short prose summary under `# Team heartbeat`.
 
 **Step 6 — Report to CEO**: Present a clear status update:
 - What the team accomplished since last check

@@ -1,5 +1,7 @@
 const { Command } = require('commander');
 const chalk = require('chalk');
+const path = require('path');
+const fs = require('fs-extra');
 const { runQuestionnaire } = require('./questionnaire');
 const { scaffold, printManifest } = require('./scaffolder');
 const { runDoctor } = require('./doctor');
@@ -10,6 +12,8 @@ const { countAgents, countCommandFiles } = require('./utils');
 const { resolveAllAgents } = require('./agents');
 const { PACKAGE_VERSION } = require('./constants');
 const { PRESET_KEYS } = require('./presets');
+const { IDE_TARGETS } = require('./targets');
+const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
 
 const program = new Command();
 
@@ -30,7 +34,9 @@ function addInitOptions(cmd) {
     .option('--optional <roles>', 'Comma-separated optional roles: sre, tpm')
     .option('--preset <preset>', `Roster preset: ${PRESET_KEYS.join(', ')}`, 'full')
     .option('--theme <theme>', 'phoenix | professional', 'phoenix')
-    .option('--target <target>', 'claude | cursor | both', 'both')
+    .option('--target <target>', `claude | cursor | codex | windsurf | both | all`, 'both')
+    .option('--config <path>', 'Load settings from a config file (YAML or JSON)')
+    .option('--save-config', 'Write .agentic-crew.yaml after init')
     .option('--output-dir <dir>', 'Output directory', '.')
     .option('--yes', 'Skip questionnaire when --name is set')
     .option('--dry-run', 'Print what would be created without writing files')
@@ -46,6 +52,26 @@ function addInitOptions(cmd) {
     .option('--json', 'Output machine-readable JSON');
 }
 
+async function resolveInitAnswers(cmd) {
+  const opts = cmd.opts();
+  const { config, configPath } = await loadProjectConfig({
+    configPath: opts.config,
+    startDir: opts.outputDir || '.',
+  });
+  const merged = mergeConfigWithOptions(config, opts) || opts;
+  if (config?.name && !opts.yes && !opts.name) {
+    merged.yes = true;
+    merged.name = merged.name || config.name;
+  }
+
+  let answers = answersFromOptions(merged);
+  if (!answers) {
+    answers = await runQuestionnaire();
+  }
+
+  return { answers, configPath, saveConfig: Boolean(opts.saveConfig) };
+}
+
 addInitOptions(
   program
     .command('init', { isDefault: true })
@@ -54,10 +80,7 @@ addInitOptions(
       try {
         const cmd = this;
         const json = Boolean(cmd.opts().json);
-        let answers = answersFromOptions(cmd);
-        if (!answers) {
-          answers = await runQuestionnaire();
-        }
+        const { answers, configPath, saveConfig } = await resolveInitAnswers(cmd);
 
         if (cmd.opts().dryRun) {
           const result = await scaffold(answers, {
@@ -66,7 +89,7 @@ addInitOptions(
             prune: Boolean(cmd.opts().force),
           });
           if (json) {
-            console.log(JSON.stringify({ dryRun: true, ...result }, null, 2));
+            console.log(JSON.stringify({ dryRun: true, configPath, ...result }, null, 2));
           } else {
             printDryRun(result, answers);
           }
@@ -75,6 +98,9 @@ addInitOptions(
 
         if (!json) {
           console.log('\n' + chalk.bold('  Assembling your team...\n'));
+          if (configPath) {
+            console.log(chalk.dim(`  Using config: ${configPath}\n`));
+          }
         }
 
         const result = await scaffold(answers, {
@@ -84,8 +110,17 @@ addInitOptions(
           prune: Boolean(cmd.opts().force),
           quiet: json,
         });
+
+        if (saveConfig) {
+          const configOut = path.join(result.outputDir, '.agentic-crew.yaml');
+          await fs.writeFile(configOut, configExampleYaml(answers));
+          if (!json) {
+            console.log(chalk.green('  ✓ ') + chalk.dim(`.agentic-crew.yaml → ${configOut}`));
+          }
+        }
+
         const agents = resolveAllAgents(answers, answers.theme);
-        const filesPerDir = countCommandFiles(agents) + 2;
+        const filesPerDir = countCommandFiles(agents) + 3;
 
         if (json) {
           console.log(
@@ -93,11 +128,13 @@ addInitOptions(
               {
                 ok: true,
                 command: 'init',
+                configPath,
                 manifestPath: result.manifestPath,
                 agentCount: countAgents(agents),
                 commandFileCount: filesPerDir,
                 pruned: result.pruned || [],
                 skippedFiles: result.skippedFiles || [],
+                supplementaryWritten: result.supplementaryWritten || [],
               },
               null,
               2
@@ -119,6 +156,13 @@ addInitOptions(
             chalk.dim(` → ${result.manifestPath}`)
         );
         console.log(chalk.green('  ✓ ') + chalk.bold('docs/ structure') + chalk.dim(' (wiki / adr / runbooks)'));
+        if (result.supplementaryWritten?.length) {
+          console.log(
+            chalk.green('  ✓ ') +
+              chalk.bold('Supplementary') +
+              chalk.dim(` → ${result.supplementaryWritten.join(', ')}`)
+          );
+        }
 
         printManifest(answers, result);
       } catch (err) {
@@ -206,7 +250,10 @@ program
     }
   });
 
-program.addHelpText('afterAll', '\n  Quick start: agentic-crew init\n');
+program.addHelpText(
+  'afterAll',
+  `\n  Quick start: agentic-crew init\n  Targets: ${IDE_TARGETS.join(', ')}\n`
+);
 
 function printDryRun(result, answers) {
   const { planned, allAgents, commandDirs } = result;

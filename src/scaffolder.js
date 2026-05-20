@@ -31,9 +31,12 @@ const {
   countAgents,
   countCommandFiles,
   resolveCommandDirs,
-  normalizeTargets,
+  resolveSupplementaryPaths,
+  serializeTargets,
   resolveSafeOutputDir,
 } = require('./utils');
+const { writeSupplementaryOutputs, writeTeamRouter } = require('./supplementary');
+const { getThemePack } = require('./themes');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const templateCache = new Map();
@@ -76,8 +79,10 @@ async function scaffold(answers, options = {}) {
   const scaffoldSecurityCi = withSecurityCi || Boolean(answers.withSecurityCi);
   const outputDir = resolveSafeOutputDir(answers.outputDir || '.');
   const theme = answers.theme || 'phoenix';
-  const targets = normalizeTargets(answers.targets || 'both');
-  const commandDirs = resolveCommandDirs(targets, outputDir);
+  const targetsInput = answers.targets || 'both';
+  const commandDirs = resolveCommandDirs(targetsInput, outputDir);
+  const supplementary = resolveSupplementaryPaths(targetsInput, outputDir);
+  const targets = serializeTargets(targetsInput);
 
   const sanitizedAnswers = {
     ...answers,
@@ -279,7 +284,27 @@ async function scaffold(answers, options = {}) {
     if (await fs.pathExists(stalePath)) {
       await fs.remove(stalePath);
     }
+
+    await writeTeamRouter({
+      commandDirs: [commandsDir],
+      baseContext,
+      allAgents,
+      theme,
+      loadTemplate,
+      writerParams,
+    });
   }
+
+  const supplementaryWritten = await writeSupplementaryOutputs({
+    outputDir,
+    supplementary,
+    baseContext,
+    allAgents,
+    theme,
+    loadTemplate,
+    writerParams,
+    overwriteGeneratedDocs,
+  });
 
   for (const agent of allAgents) {
     const statusFile = path.join(statusDir, `${agent.file}.md`);
@@ -301,9 +326,10 @@ async function scaffold(answers, options = {}) {
     await fs.writeFile(tasksPath, tasksTpl(baseContext));
   }
 
+  const heartbeatTpl = loadTemplate('agent/heartbeat.md.hbs');
   const heartbeatPath = path.join(reportsDir, 'heartbeat.md');
-  if (!(await fs.pathExists(heartbeatPath))) {
-    await fs.writeFile(heartbeatPath, `---\nupdated: never\n---\n\n# Team heartbeat\n\n*(Manager updates this on each check-in.)*\n`);
+  if (!(await fs.pathExists(heartbeatPath)) || overwriteGeneratedDocs) {
+    await fs.writeFile(heartbeatPath, heartbeatTpl(baseContext));
   }
 
   await fs.writeFile(path.join(reportsDir, '.gitkeep'), '');
@@ -366,6 +392,7 @@ async function scaffold(answers, options = {}) {
       trait: r.trait,
     })),
     commandDirs: baseContext.commandDirs,
+    supplementaryFiles: supplementaryWritten,
     commandHashes,
     withSecurityCi: Boolean(scaffoldSecurityCi),
   });
@@ -407,6 +434,7 @@ async function scaffold(answers, options = {}) {
     theme,
     skippedFiles,
     pruned,
+    supplementaryWritten,
   };
 }
 
@@ -469,12 +497,14 @@ function printManifest(answers, result) {
   console.log(
     '\n  ' +
       chalk.dim('Utilities: ') +
+      chalk.white('/team') +
+      chalk.dim(' — router   ') +
       chalk.white('/setup') +
       chalk.dim(' — bootstrap   ') +
       chalk.white(catalogSlash) +
       chalk.dim(' — show all commands')
   );
-  const startCmd = isProfessional ? '/manager' : '/dumbledore';
+  const startCmd = `/${getThemePack(theme).startCommand}`;
   console.log(
     '\n  ' +
       chalk.bold.yellow('✨ Ready.') +

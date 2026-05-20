@@ -25,7 +25,7 @@ async function runUninstall(projectDir = '.', options = {}) {
   async function removeTarget(targetPath) {
     const rel = path.relative(root, targetPath).replace(/\\/g, '/');
     if (!(await fs.pathExists(targetPath))) return;
-    removed.push(rel);
+    if (!removed.includes(rel)) removed.push(rel);
     if (!dryRun) {
       await fs.remove(targetPath);
     }
@@ -38,7 +38,6 @@ async function runUninstall(projectDir = '.', options = {}) {
     await removeTarget(path.join(root, rel));
   }
 
-  // Remove alias/command files listed in manifest agents even if not hashed (legacy).
   for (const commandsDir of commandDirs) {
     for (const agent of manifest.agents || []) {
       await removeTarget(path.join(commandsDir, `${agent.file}.md`));
@@ -53,11 +52,19 @@ async function runUninstall(projectDir = '.', options = {}) {
       }
     }
     await removeTarget(path.join(commandsDir, 'setup.md'));
+    await removeTarget(path.join(commandsDir, 'team.md'));
     const catalog = manifest.catalogCommand || 'lumos';
     await removeTarget(path.join(commandsDir, `${catalog}.md`));
     await removeTarget(path.join(commandsDir, catalog === 'help' ? 'lumos.md' : 'help.md'));
   }
 
+  for (const rel of manifest.supplementaryFiles || []) {
+    await removeTarget(path.join(root, rel));
+  }
+
+  await removeTarget(path.join(root, 'AGENTS.md'));
+  await removeTarget(path.join(root, '.cursor', 'rules', 'agentic-crew.mdc'));
+  await removeTarget(path.join(root, '.agentic-crew.yaml'));
   await removeTarget(manifestPath);
 
   if (manifest.withSecurityCi) {
