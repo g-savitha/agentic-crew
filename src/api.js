@@ -1,4 +1,4 @@
-const { scaffold, printManifest, loadTemplate } = require('./scaffolder');
+const { scaffold, printManifest, loadTemplate, previewCommandFiles } = require('./scaffolder');
 const { runDoctor } = require('./doctor');
 const { runUpdate } = require('./update');
 const { runUninstall } = require('./uninstall');
@@ -18,11 +18,16 @@ const { pruneStaleFiles } = require('./prune');
 const { PRESETS, PRESET_KEYS, resolvePreset, applyPresetFilter } = require('./presets');
 const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
 const { getThemePack, applyThemePack, THEME_PACKS } = require('./themes');
+const { loadThemePack, loadExternalThemePack } = require('./theme-loader');
+const { runManifestMigrations } = require('./migrations');
+const { planUpdateChanges } = require('./plan-update');
+const { appendGitignoreRecommendations } = require('./gitignore');
 
 module.exports = {
   scaffold,
   printManifest,
   loadTemplate,
+  previewCommandFiles,
   runDoctor,
   runUpdate,
   runUninstall,
@@ -43,6 +48,11 @@ module.exports = {
   getThemePack,
   applyThemePack,
   THEME_PACKS,
+  loadThemePack,
+  loadExternalThemePack,
+  runManifestMigrations,
+  planUpdateChanges,
+  appendGitignoreRecommendations,
   PACKAGE_VERSION,
   SCHEMA_VERSION,
   MANIFEST_FILENAME,

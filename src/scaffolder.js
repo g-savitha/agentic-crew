@@ -547,4 +547,131 @@ function printAgentRows(agents, professional) {
   }
 }
 
-module.exports = { scaffold, printManifest, loadTemplate };
+/**
+ * Render command file contents without writing (for update --dry-run diff).
+ * @param {object} answers
+ * @param {{ isUpdate?: boolean }} [options]
+ * @returns {Promise<Array<{ rel: string, content: string }>>}
+ */
+async function previewCommandFiles(answers, options = {}) {
+  const outputDir = resolveSafeOutputDir(answers.outputDir || '.');
+  const theme = answers.theme || 'phoenix';
+  const targetsInput = answers.targets || 'both';
+  const commandDirs = resolveCommandDirs(targetsInput, outputDir);
+
+  const sanitizedAnswers = {
+    ...answers,
+    projectName: sanitizeUserText(answers.projectName || 'your project', MAX_PROJECT_NAME),
+    projectDescription: sanitizeUserText(answers.projectDescription || ''),
+    githubRepo: sanitizeUserText(answers.githubRepo || '', 500),
+    customRoles: (answers.customRoles || []).map((r) => ({
+      ...r,
+      name: sanitizeUserText(r.name, MAX_PROJECT_NAME),
+      description: sanitizeUserText(r.description, MAX_CUSTOM_ROLE_DESC),
+      character: sanitizeUserText(r.character, MAX_PROJECT_NAME),
+      trait: sanitizeUserText(r.trait, MAX_DESCRIPTION),
+    })),
+  };
+
+  const stack = resolveStack(sanitizedAnswers);
+  const conditionalAgents = resolveConditionalAgents(sanitizedAnswers);
+  const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
+  const allAgents = resolveAllAgents(sanitizedAnswers, theme);
+  const sanitizedCustomRoles = sanitizedAnswers.customRoles;
+
+  const baseContext = {
+    projectName: sanitizedAnswers.projectName,
+    projectDescription: sanitizedAnswers.projectDescription,
+    githubRepo: sanitizedAnswers.githubRepo,
+    frontendStack: stack.frontendStack || 'Not specified',
+    backendStack: stack.backendStack || 'Not specified',
+    domainExpertise: stack.domainExpertise || 'General software engineering',
+    hasFrontend: stack.hasFrontend,
+    hasBackend: stack.hasBackend,
+    hasDomain: stack.hasDomain,
+    theme,
+    isProfessional: theme === 'professional',
+    teamAgents: allAgents,
+    allAgents,
+    commandDirs: commandDirs.map((d) => path.relative(outputDir, d).replace(/\\/g, '/')),
+  };
+
+  const files = [];
+
+  for (const commandsDir of commandDirs) {
+    const commandsRelativePath = path.relative(outputDir, commandsDir).replace(/\\/g, '/');
+
+    for (const agent of allAgents) {
+      const tplPath = templatePathForAgent(agent);
+      const tpl = loadTemplate(tplPath);
+      const ctx = {
+        ...baseContext,
+        characterName: agent.character,
+        characterTrait: agent.trait,
+        characterWhy: agent.why,
+        role: agent.role,
+        roleLabel: agent.role,
+        roleName: agent.role,
+        seniorBrief: agent.seniorBrief,
+        description: agent.why,
+        file: agent.file,
+        customDomainLabel: agent.customDomainLabel,
+        domainExpertise: agent.customDomainLabel || baseContext.domainExpertise,
+      };
+      files.push({
+        rel: path.relative(outputDir, path.join(commandsDir, `${agent.file}.md`)).replace(/\\/g, '/'),
+        content: tpl(ctx),
+      });
+
+      if (agent.command && agent.command !== agent.file) {
+        const aliasTpl = loadTemplate('commands/alias.md.hbs');
+        files.push({
+          rel: path.relative(outputDir, path.join(commandsDir, `${agent.command}.md`)).replace(/\\/g, '/'),
+          content: aliasTpl({
+            aliasCommand: agent.command,
+            canonicalFile: agent.file,
+            role: agent.role,
+            aliasDescription: `${agent.role} (alias for /${agent.file})`,
+            commandsRelativePath,
+          }),
+        });
+      }
+    }
+
+    const setupTpl = loadTemplate('commands/setup.md.hbs');
+    files.push({
+      rel: path.relative(outputDir, path.join(commandsDir, 'setup.md')).replace(/\\/g, '/'),
+      content: setupTpl({ ...baseContext, allAgents }),
+    });
+
+    const catalogCmd = catalogCommandForTheme(theme);
+    const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
+    files.push({
+      rel: path.relative(outputDir, path.join(commandsDir, `${catalogCmd}.md`)).replace(/\\/g, '/'),
+      content: catalogTpl({
+        ...baseContext,
+        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
+        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
+        optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
+        customRoles: sanitizedCustomRoles,
+        hasConditionalAgents: conditionalAgents.length > 0,
+        hasOptionalAgents: optionalAgents.length > 0,
+        hasCustomRoles: sanitizedCustomRoles.length > 0,
+      }),
+    });
+
+    const teamTpl = loadTemplate('commands/team.md.hbs');
+    files.push({
+      rel: path.relative(outputDir, path.join(commandsDir, 'team.md')).replace(/\\/g, '/'),
+      content: teamTpl({
+        ...baseContext,
+        themePack: getThemePack(theme),
+        startAgent: getThemePack(theme).startCommand,
+      }),
+    });
+  }
+
+  return files;
+}
+
+module.exports = { scaffold, printManifest, loadTemplate, previewCommandFiles };

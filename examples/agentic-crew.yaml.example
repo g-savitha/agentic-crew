@@ -1,0 +1,31 @@
+# agentic-crew project config
+# Copy to your project root as .agentic-crew.yaml (auto-loaded on init)
+# CLI flags override these values.
+
+name: my-app
+description: A real-time collaboration tool
+# repo: https://github.com/you/my-app
+
+frontend: nextjs
+backend: go
+
+domains:
+  - ml
+  - data
+
+# claude | cursor | codex | windsurf | both | all
+target: all
+
+# full | minimal | enterprise | startup
+preset: startup
+
+theme: professional
+
+# optionalRoles:
+#   - sre
+#   - tpm
+
+# withSecurityCi: true
+
+# customRoles:
+#   - "Data Engineer|Owns ETL pipelines and warehouse schema"

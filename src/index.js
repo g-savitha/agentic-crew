@@ -14,6 +14,7 @@ const { PACKAGE_VERSION } = require('./constants');
 const { PRESET_KEYS } = require('./presets');
 const { IDE_TARGETS } = require('./targets');
 const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
+const { appendGitignoreRecommendations } = require('./gitignore');
 
 const program = new Command();
 
@@ -48,6 +49,7 @@ function addInitOptions(cmd) {
       []
     )
     .option('--with-security-ci', 'Scaffold .github/workflows/security.yml in the target project')
+    .option('--with-gitignore', 'Append agentic-crew recommendations to .gitignore')
     .option('--force-overwrite', 'Replace user-edited command skill files')
     .option('--json', 'Output machine-readable JSON');
 }
@@ -116,6 +118,13 @@ addInitOptions(
           await fs.writeFile(configOut, configExampleYaml(answers));
           if (!json) {
             console.log(chalk.green('  ✓ ') + chalk.dim(`.agentic-crew.yaml → ${configOut}`));
+          }
+        }
+
+        if (cmd.opts().withGitignore || answers.withGitignore) {
+          const { appended, gitignorePath } = await appendGitignoreRecommendations(result.outputDir);
+          if (!json && appended) {
+            console.log(chalk.green('  ✓ ') + chalk.dim(`gitignore recommendations → ${gitignorePath}`));
           }
         }
 

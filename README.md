@@ -151,6 +151,7 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--force-overwrite` | Replace user-edited command skill files |
 | `--custom-role` | `Name|Description` — repeatable custom role |
 | `--with-security-ci` | Add `.github/workflows/security.yml` to the target project |
+| `--with-gitignore` | Append agentic-crew recommendations to `.gitignore` |
 | `--yes` | Skip questionnaire (requires `--name`) |
 | `--json` | Machine-readable JSON output |
 

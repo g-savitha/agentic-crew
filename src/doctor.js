@@ -193,6 +193,24 @@ async function runDoctor(projectDir = '.', options = {}) {
     }
   }
 
+  for (const commandsDir of commandDirs) {
+    const teamFile = path.join(commandsDir, 'team.md');
+    if (!(await fs.pathExists(teamFile))) {
+      issues.push(`Missing team router: ${path.relative(root, teamFile)}`);
+    } else {
+      ok.push(`team.md present (${path.relative(root, commandsDir)})`);
+    }
+  }
+
+  for (const rel of manifest.supplementaryFiles || []) {
+    const full = path.join(root, rel);
+    if (!(await fs.pathExists(full))) {
+      issues.push(`Missing supplementary file: ${rel}`);
+    } else {
+      ok.push(`Supplementary file present: ${rel}`);
+    }
+  }
+
   if (fix && issues.length > 0) {
     const answers = manifestToAnswers(manifest, root);
     await scaffold(answers, {

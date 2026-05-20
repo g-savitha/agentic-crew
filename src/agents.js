@@ -1,5 +1,6 @@
 const { UTILITY_COMMANDS } = require('./constants');
 const { applyThemePack } = require('./themes');
+const { loadThemePack } = require('./theme-loader');
 const { normalizeDomains, assertNoCollision } = require('./utils');
 
 /** @typedef {{ file: string, role: string, character: string, command?: string, trait: string, why: string, seniorBrief?: string, template?: string, domainKey?: string, customDomainLabel?: string }} AgentDefinition */
@@ -295,7 +296,14 @@ const KNOWN_DOMAIN_KEYS = new Set(Object.keys(CONDITIONAL_AGENTS.domain));
  * @returns {AgentDefinition}
  */
 function applyTheme(agent, theme) {
-  return applyThemePack(agent, theme);
+  try {
+    const loaded = loadThemePack(theme);
+    const override = loaded.getAgentOverride(agent.file);
+    const base = override ? { ...agent, ...override } : agent;
+    return loaded.apply(base);
+  } catch {
+    return applyThemePack(agent, theme === 'professional' ? 'professional' : 'phoenix');
+  }
 }
 
 /**

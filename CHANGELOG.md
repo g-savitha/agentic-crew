@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.0] - 2026-05-19
+
+### Added
+
+- **External theme loader** (`loadThemePack`) — resolve `@agentic-crew/theme-*` packages from `node_modules`
+- **Schema v1 documentation** — `docs/SCHEMA.md` and stable manifest contract for 0.7.x
+
+## [0.6.0] - 2026-05-19
+
+### Added
+
+- **Manifest migrations** on `update` — backfill `schemaVersion`, `commandHashes`, `preset`, `supplementaryFiles`
+- **Update dry-run diff** — `update --dry-run` lists files that would update vs preserve (with reasons)
+- **`--with-gitignore`** on `init` — append recommended `.gitignore` snippet for backups and optional message history
+
+## [0.5.0] - 2026-05-19
+
+### Added
+
+- **TypeScript declarations** (`index.d.ts`) — types for programmatic API consumers
+- **Doctor supplementary checks** — validates `team.md` per command dir and manifest `supplementaryFiles`
+- **Example config** — `examples/agentic-crew.yaml.example`
+
 ## [0.4.0] - 2026-05-19
 
 ### Added
