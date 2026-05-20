@@ -246,7 +246,7 @@ async function scaffold(answers, options = {}) {
       const relLabel = path.relative(outputDir, commandsDir).replace(/\\/g, '/');
       if (!quiet) {
         const mark = written ? chalk.green('  ✓ ') : chalk.yellow('  ↷ ');
-        process.stdout.write(
+        process.stderr.write(
           mark +
             chalk.dim(`${relLabel}/${agent.file}.md`) +
             (written ? chalk.cyan(`  (${agent.character})\n`) : chalk.dim('  (preserved user edits)\n'))

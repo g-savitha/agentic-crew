@@ -59,39 +59,43 @@ async function runUpdate(projectDir = '.', options = {}) {
     if (options.json) {
       console.log(JSON.stringify(payload, null, 2));
     } else {
-      console.log('\n' + chalk.bold('  Update dry run — no files written\n'));
+      console.error('\n' + chalk.bold('  Update dry run — no files written\n'));
       if (applied.length) {
-        console.log(chalk.dim(`  Manifest migrations: ${applied.join(', ')}`));
+        console.error(chalk.dim(`  Manifest migrations: ${applied.join(', ')}`));
       }
-      console.log(chalk.dim(`  Agents: ${payload.agents}`));
-      console.log(chalk.dim(`  Overwrite docs/backlog: ${payload.overwriteDocs ? 'yes (--force)' : 'no'}`));
+      console.error(chalk.dim(`  Agents: ${payload.agents}`));
+      console.error(
+        chalk.dim(`  Overwrite docs/backlog: ${payload.overwriteDocs ? 'yes (--force)' : 'no'}`)
+      );
       if (diff.wouldUpdate.length > 0) {
-        console.log(chalk.dim(`\n  Would update ${diff.wouldUpdate.length} file(s):`));
+        console.error(chalk.dim(`\n  Would update ${diff.wouldUpdate.length} file(s):`));
         for (const f of diff.wouldUpdate.slice(0, 20)) {
-          console.log(`    ${f.action}  ${f.path}${f.reason ? chalk.dim(` (${f.reason})`) : ''}`);
+          console.error(`    ${f.action}  ${f.path}${f.reason ? chalk.dim(` (${f.reason})`) : ''}`);
         }
         if (diff.wouldUpdate.length > 20) {
-          console.log(chalk.dim(`    ... and ${diff.wouldUpdate.length - 20} more`));
+          console.error(chalk.dim(`    ... and ${diff.wouldUpdate.length - 20} more`));
         }
       }
       if (diff.wouldPreserve.length > 0) {
-        console.log(chalk.dim(`\n  Would preserve ${diff.wouldPreserve.length} user-edited file(s).`));
+        console.error(chalk.dim(`\n  Would preserve ${diff.wouldPreserve.length} user-edited file(s).`));
       }
       if (payload.wouldPrune.length > 0) {
-        console.log(chalk.dim('\n  Would remove stale files:'));
+        console.error(chalk.dim('\n  Would remove stale files:'));
         for (const f of payload.wouldPrune) {
-          console.log('    ' + f);
+          console.error('    ' + f);
         }
       }
-      console.log('');
+      console.error('');
     }
     return payload;
   }
 
-  if (!options.json) {
-    console.log(chalk.bold('\n  Updating agent skill files from package templates...\n'));
+  const quiet = Boolean(options.json || options.quiet);
+
+  if (!quiet) {
+    console.error(chalk.bold('\n  Updating agent skill files from package templates...\n'));
     if (applied.length) {
-      console.log(chalk.dim(`  Applied manifest migrations: ${applied.join(', ')}\n`));
+      console.error(chalk.dim(`  Applied manifest migrations: ${applied.join(', ')}\n`));
     }
   }
 
@@ -102,7 +106,7 @@ async function runUpdate(projectDir = '.', options = {}) {
     backup: options.backup || false,
     withSecurityCi: manifest.withSecurityCi || false,
     prune: true,
-    quiet: Boolean(options.json),
+    quiet,
   });
 
   const payload = {
@@ -115,19 +119,21 @@ async function runUpdate(projectDir = '.', options = {}) {
 
   if (options.json) {
     console.log(JSON.stringify(payload, null, 2));
-  } else {
-    console.log(chalk.green('\n  ✓ Command templates updated.'));
+  } else if (!quiet) {
+    console.error(chalk.green('\n  ✓ Command templates updated.'));
     if (result.skippedFiles?.length) {
-      console.log(
+      console.error(
         chalk.dim(
           `  Preserved ${result.skippedFiles.length} user-edited file(s). Use --force-overwrite to replace.\n`
         )
       );
     } else {
-      console.log(chalk.dim('  .agent/messages and status files were preserved (only missing files created).\n'));
+      console.error(
+        chalk.dim('  .agent/messages and status files were preserved (only missing files created).\n')
+      );
     }
     if (result.pruned?.length) {
-      console.log(chalk.dim(`  Removed ${result.pruned.length} stale file(s).\n`));
+      console.error(chalk.dim(`  Removed ${result.pruned.length} stale file(s).\n`));
     }
   }
 

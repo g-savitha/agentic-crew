@@ -247,23 +247,23 @@ async function runDoctor(projectDir = '.', options = {}) {
 
 function printReport(ok, warnings, issues, drift, quiet) {
   if (quiet) return;
-  console.log('\n' + chalk.bold('  agentic-crew doctor\n'));
+  console.error('\n' + chalk.bold('  agentic-crew doctor\n'));
   for (const line of ok) {
-    console.log(chalk.green('  ✓ ') + line);
+    console.error(chalk.green('  ✓ ') + line);
   }
   for (const line of warnings) {
-    console.log(chalk.yellow('  ⚠ ') + line);
+    console.error(chalk.yellow('  ⚠ ') + line);
   }
   for (const line of drift) {
-    console.log(chalk.yellow('  ⚠ Hash drift: ') + line);
+    console.error(chalk.yellow('  ⚠ Hash drift: ') + line);
   }
   for (const line of issues) {
-    console.log(chalk.red('  ✗ ') + line);
+    console.error(chalk.red('  ✗ ') + line);
   }
   if (issues.length === 0) {
-    console.log('\n' + chalk.green.bold('  All checks passed.\n'));
+    console.error('\n' + chalk.green.bold('  All checks passed.\n'));
   } else {
-    console.log(
+    console.error(
       '\n' +
         chalk.yellow(
           `  ${issues.length} issue(s) found. Run \`agentic-crew doctor --fix\`, \`agentic-crew init --force\`, or \`/setup\` to repair.\n`

@@ -25,7 +25,7 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "test": "node --test test/**/*.test.js",
+    "test": "node --test --test-concurrency=1 $(find test -name '*.test.js' | sort | tr '\\n' ' ')",
     "test:smoke": "node bin/cli.js init --dry-run --yes --name smoke --frontend react --backend go --domain ml,data",
     "prepublishOnly": "npm test"
   },

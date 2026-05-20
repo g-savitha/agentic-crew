@@ -9,6 +9,7 @@ const { planUpdateChanges } = require('../src/plan-update');
 const { appendGitignoreRecommendations, SNIPPET_MARKER_START } = require('../src/gitignore');
 const { loadThemePack } = require('../src/theme-loader');
 const { hashContent } = require('../src/hash');
+const { testScaffoldOpts } = require('./_helpers');
 
 describe('manifest migrations', () => {
   it('backfills missing structural fields without changing agents', () => {
@@ -46,14 +47,17 @@ describe('previewCommandFiles', () => {
 describe('planUpdateChanges', () => {
   it('detects create vs preserve vs update', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-plan-'));
-    await scaffold({
-      projectName: 'plan-app',
-      frontend: 'none',
-      backend: 'go',
-      targets: 'claude',
-      theme: 'professional',
-      outputDir: tmp,
-    });
+    await scaffold(
+      {
+        projectName: 'plan-app',
+        frontend: 'none',
+        backend: 'go',
+        targets: 'claude',
+        theme: 'professional',
+        outputDir: tmp,
+      },
+      testScaffoldOpts({ force: true })
+    );
 
     const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
     const answers = {

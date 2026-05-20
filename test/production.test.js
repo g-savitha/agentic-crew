@@ -10,6 +10,7 @@ const { runDoctor } = require('../src/doctor');
 const { runUninstall } = require('../src/uninstall');
 const { pruneStaleFiles } = require('../src/prune');
 const { migrateManifest, SCHEMA_VERSION } = require('../src/manifest');
+const { testScaffoldOpts } = require('./_helpers');
 const { resolvePreset } = require('../src/presets');
 const api = require('../src/api');
 
@@ -58,15 +59,15 @@ describe('production hardening', () => {
         theme: 'professional',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const tasksPath = path.join(tmp, '.agent', 'backlog', 'tasks.md');
     await fs.writeFile(tasksPath, '# CUSTOM BACKLOG\n');
 
-    await runUpdate(tmp, { force: false });
+    await runUpdate(tmp, { force: false, quiet: true });
     assert.match(await fs.readFile(tasksPath, 'utf8'), /CUSTOM BACKLOG/);
 
-    await runUpdate(tmp, { force: true });
+    await runUpdate(tmp, { force: true, quiet: true });
     assert.doesNotMatch(await fs.readFile(tasksPath, 'utf8'), /CUSTOM BACKLOG/);
   });
 
@@ -83,7 +84,7 @@ describe('production hardening', () => {
         theme: 'phoenix',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const frontendPath = path.join(tmp, '.claude', 'commands', 'frontend.md');
     assert.ok(await fs.pathExists(frontendPath));
@@ -94,7 +95,7 @@ describe('production hardening', () => {
     manifest.agents = manifest.agents.filter((a) => a.file !== 'frontend');
     await fs.writeJson(manifestPath, manifest, { spaces: 2 });
 
-    await runUpdate(tmp, { force: false });
+    await runUpdate(tmp, { force: false, quiet: true });
     assert.equal(await fs.pathExists(frontendPath), false);
     assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'ginny.md')), false);
   });
@@ -112,7 +113,7 @@ describe('production hardening', () => {
         theme: 'professional',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
     manifest.stacks.frontend = 'none';
@@ -138,7 +139,7 @@ describe('production hardening', () => {
         theme: 'professional',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const statusPath = path.join(tmp, '.agent', 'status', 'manager.md');
     await fs.remove(statusPath);
@@ -165,7 +166,7 @@ describe('production hardening', () => {
         theme: 'professional',
         targets: 'claude',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const result = await runUninstall(tmp, { keepState: true });
     assert.ok(result.removed.some((f) => f.endsWith('.agentic-crew.json')));
@@ -189,7 +190,7 @@ describe('production hardening', () => {
         targets: 'claude',
         preset: 'full',
       },
-      { force: true }
+      testScaffoldOpts({ force: true })
     );
     const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
     assert.equal(manifest.schemaVersion, SCHEMA_VERSION);
