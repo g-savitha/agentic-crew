@@ -5,11 +5,12 @@ const { catalogCommandForTheme } = require('./constants');
 /**
  * Build the set of command filenames that should exist for the current roster.
  * @param {import('./agents').AgentDefinition[]} allAgents
- * @param {'phoenix' | 'professional'} theme
+ * @param {string} theme
+ * @param {string} [catalogCommand] manifest catalog command (lumos, help, or external)
  * @returns {Set<string>}
  */
-function expectedCommandFilenames(allAgents, theme) {
-  const catalogCmd = catalogCommandForTheme(theme);
+function expectedCommandFilenames(allAgents, theme, catalogCommand) {
+  const catalogCmd = catalogCommand || catalogCommandForTheme(theme);
   const expected = new Set([`setup.md`, `${catalogCmd}.md`]);
   for (const agent of allAgents) {
     expected.add(`${agent.file}.md`);
@@ -26,13 +27,22 @@ function expectedCommandFilenames(allAgents, theme) {
  * @param {string} params.outputDir
  * @param {string[]} params.commandDirs
  * @param {import('./agents').AgentDefinition[]} params.allAgents
- * @param {'phoenix' | 'professional'} params.theme
+ * @param {string} params.theme
+ * @param {string} [params.catalogCommand]
  * @param {string} params.agentDir
  * @param {boolean} [params.dryRun]
  * @returns {Promise<string[]>} relative paths removed (or would be removed)
  */
-async function pruneStaleFiles({ outputDir, commandDirs, allAgents, theme, agentDir, dryRun = false }) {
-  const expected = expectedCommandFilenames(allAgents, theme);
+async function pruneStaleFiles({
+  outputDir,
+  commandDirs,
+  allAgents,
+  theme,
+  catalogCommand,
+  agentDir,
+  dryRun = false,
+}) {
+  const expected = expectedCommandFilenames(allAgents, theme, catalogCommand);
   expected.add('team.md');
   const expectedAgentSlugs = new Set(allAgents.map((a) => a.file));
   const removed = [];

@@ -16,10 +16,17 @@ const { IDE_TARGETS } = require('./targets');
 const { migrateManifest, buildManifest, validateManifestStructure, SCHEMA_VERSION } = require('./manifest');
 const { validateManifestSchema } = require('./manifest-schema-validator');
 const { pruneStaleFiles } = require('./prune');
+const { validateHeartbeatContent } = require('./heartbeat');
+const { writeStarterRunbooks, RUNBOOK_SPECS } = require('./runbooks');
 const { PRESETS, PRESET_KEYS, resolvePreset, applyPresetFilter } = require('./presets');
 const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
 const { getThemePack, applyThemePack, THEME_PACKS } = require('./themes');
-const { loadThemePack, loadExternalThemePack } = require('./theme-loader');
+const {
+  loadThemePack,
+  loadExternalThemePack,
+  resolveThemePack,
+  catalogCommandForThemeId,
+} = require('./theme-loader');
 const { runManifestMigrations } = require('./migrations');
 const { planUpdateChanges } = require('./plan-update');
 const { appendGitignoreRecommendations } = require('./gitignore');
@@ -42,6 +49,9 @@ module.exports = {
   validateManifestStructure,
   validateManifestSchema,
   pruneStaleFiles,
+  validateHeartbeatContent,
+  writeStarterRunbooks,
+  RUNBOOK_SPECS,
   resolvePreset,
   applyPresetFilter,
   loadProjectConfig,
@@ -52,6 +62,8 @@ module.exports = {
   THEME_PACKS,
   loadThemePack,
   loadExternalThemePack,
+  resolveThemePack,
+  catalogCommandForThemeId,
   runManifestMigrations,
   planUpdateChanges,
   appendGitignoreRecommendations,

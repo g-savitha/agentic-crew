@@ -8,8 +8,8 @@
     "schemaVersion": { "type": "integer", "minimum": 1 },
     "packageVersion": { "type": "string" },
     "scaffoldedAt": { "type": "string", "format": "date-time" },
-    "theme": { "enum": ["phoenix", "professional"] },
-    "catalogCommand": { "enum": ["lumos", "help"] },
+    "theme": { "type": "string", "minLength": 1 },
+    "catalogCommand": { "type": "string", "minLength": 1 },
     "preset": { "enum": ["full", "minimal", "enterprise", "startup"] },
     "targets": {
       "oneOf": [

@@ -33,7 +33,7 @@ function addInitOptions(cmd) {
     .option('--domain <domains>', 'Comma-separated domain keys or custom labels')
     .option('--domain-other <text>', 'Custom domain label (appended to --domain)')
     .option('--optional <roles>', 'Comma-separated optional roles: sre, tpm')
-    .option('--preset <preset>', `Roster preset: ${PRESET_KEYS.join(', ')}`, 'full')
+    .option('--preset <preset>', `Roster preset: ${PRESET_KEYS.join(', ')}`, 'startup')
     .option('--theme <theme>', 'phoenix | professional', 'phoenix')
     .option('--target <target>', `claude | cursor | codex | windsurf | both | all`, 'both')
     .option('--config <path>', 'Load settings from a config file (YAML or JSON)')
@@ -181,10 +181,17 @@ program
   .command('doctor')
   .description('Validate agent team structure against the manifest')
   .option('--dir <path>', 'Project directory', '.')
-  .option('--fix', 'Repair missing files and prune stale roster entries')
+  .option('--fix', 'Repair missing scaffold files (does not prune stale files unless --prune)')
+  .option('--prune', 'With --fix, remove command/status/message files no longer in the manifest roster')
+  .option('--strict', 'Treat protocol warnings (heartbeat, message frontmatter) as errors')
   .option('--json', 'Output machine-readable JSON')
   .action(async (opts) => {
-    const { ok } = await runDoctor(opts.dir, { fix: opts.fix, json: opts.json });
+    const { ok } = await runDoctor(opts.dir, {
+      fix: opts.fix,
+      prune: opts.prune,
+      strict: opts.strict,
+      json: opts.json,
+    });
     process.exit(ok ? 0 : 1);
   });
 

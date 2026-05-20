@@ -1,0 +1,41 @@
+# On-call runbook — {{projectName}}
+
+> **Owner**: SRE / DevOps. Any engineer should be able to follow this during an on-call rotation.
+
+## Before your shift
+
+- [ ] Read `.agent/reports/heartbeat.md` for known blockers
+- [ ] Confirm alert routing reaches you (pager, Slack, email)
+- [ ] Know how to access logs/metrics for {{backendStack}}
+
+## Severity guide
+
+| Level | Examples | Response |
+|-------|----------|----------|
+| SEV1 | Outage, data loss risk | Page CEO + Manager; start `incident.md` |
+| SEV2 | Degraded service | Mitigate within 1h; update heartbeat |
+| SEV3 | Non-urgent defect | Route to backlog via PO |
+
+## First 15 minutes (any alert)
+
+1. Acknowledge the alert
+2. Check recent deploys and error dashboards
+3. Write status to `.agent/status/<your-agent>.md`
+4. If customer-impacting: follow `docs/runbooks/incident.md`
+
+## Handoff
+
+Append to `.agent/messages/manager.md`:
+
+```markdown
+---
+from: <your-agent-file>
+to: manager
+date: <ISO-8601>
+subject: On-call handoff
+---
+
+- Open incidents:
+- Watch items:
+- Recent deploys:
+```

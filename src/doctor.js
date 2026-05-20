@@ -7,13 +7,15 @@ const { hashContent } = require('./hash');
 const { resolveCommandDirs, resolveSafeProjectDir, relativeCommandPath } = require('./utils');
 const { scaffold } = require('./scaffolder');
 const { resolvePreset } = require('./presets');
+const { validateHeartbeatContent } = require('./heartbeat');
+const { RUNBOOK_SPECS } = require('./runbooks');
 
 /**
  * @param {object} manifest
  * @param {string} root
  */
 function manifestToAnswers(manifest, root) {
-  const presetDef = resolvePreset(manifest.preset || 'full');
+  const presetDef = resolvePreset(manifest.preset || 'startup');
   return {
     projectName: manifest.project?.name || 'your project',
     projectDescription: manifest.project?.description || '',
@@ -57,10 +59,10 @@ function isValidMessageFrontmatter(content) {
 
 /**
  * @param {string} [projectDir]
- * @param {{ fix?: boolean, json?: boolean, quiet?: boolean }} [options]
+ * @param {{ fix?: boolean, prune?: boolean, strict?: boolean, json?: boolean, quiet?: boolean }} [options]
  */
 async function runDoctor(projectDir = '.', options = {}) {
-  const { fix = false, json = false, quiet = false } = options;
+  const { fix = false, prune = false, strict = false, json = false, quiet = false } = options;
   const root = resolveSafeProjectDir(projectDir);
   const manifestPath = path.join(root, MANIFEST_FILENAME);
   const issues = [];
@@ -119,9 +121,9 @@ async function runDoctor(projectDir = '.', options = {}) {
     } else {
       const messageContent = await fs.readFile(messageFile, 'utf8');
       if (messageContent.trim() && !isValidMessageFrontmatter(messageContent)) {
-        warnings.push(
-          `Message file .agent/messages/${agent.file}.md has content without valid frontmatter (from/to/date/subject).`
-        );
+        const msg = `Message file .agent/messages/${agent.file}.md has content without valid frontmatter (from/to/date/subject).`;
+        if (strict) issues.push(msg);
+        else warnings.push(msg);
       }
     }
     for (const commandsDir of commandDirs) {
@@ -161,7 +163,24 @@ async function runDoctor(projectDir = '.', options = {}) {
   if (!(await fs.pathExists(heartbeat))) {
     issues.push('Missing .agent/reports/heartbeat.md');
   } else {
-    ok.push('heartbeat.md present');
+    const heartbeatContent = await fs.readFile(heartbeat, 'utf8');
+    const hb = validateHeartbeatContent(heartbeatContent);
+    if (hb.valid) {
+      ok.push('heartbeat.md present (structured frontmatter)');
+    } else {
+      const msg = `heartbeat.md invalid: ${hb.reason} — Manager should overwrite with updated/blockers/decisions_needed/accomplishments`;
+      if (strict) issues.push(msg);
+      else warnings.push(msg);
+    }
+  }
+
+  for (const spec of RUNBOOK_SPECS) {
+    const runbookPath = path.join(root, 'docs', 'runbooks', spec.file);
+    if (!(await fs.pathExists(runbookPath))) {
+      warnings.push(`Missing starter runbook: docs/runbooks/${spec.file}`);
+    } else {
+      ok.push(`Runbook present: docs/runbooks/${spec.file}`);
+    }
   }
 
   const backlog = path.join(agentDir, 'backlog', 'tasks.md');
@@ -211,14 +230,14 @@ async function runDoctor(projectDir = '.', options = {}) {
     }
   }
 
-  if (fix && issues.length > 0) {
+  if (fix && (issues.length > 0 || prune)) {
     const fixedIssues = [...issues];
     const answers = manifestToAnswers(manifest, root);
     await scaffold(answers, {
       isUpdate: true,
       force: false,
       forceOverwrite: false,
-      prune: true,
+      prune,
       quiet: true,
     });
     const after = await runDoctor(root, { fix: false, json, quiet });
@@ -266,7 +285,7 @@ function printReport(ok, warnings, issues, drift, quiet) {
     console.error(
       '\n' +
         chalk.yellow(
-          `  ${issues.length} issue(s) found. Run \`agentic-crew doctor --fix\`, \`agentic-crew init --force\`, or \`/setup\` to repair.\n`
+          `  ${issues.length} issue(s) found. Run \`agentic-crew doctor --fix\` (add \`--prune\` to remove stale roster files), \`agentic-crew init --force\`, or \`/setup\` to repair.\n`
         )
     );
   }

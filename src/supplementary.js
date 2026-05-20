@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const Handlebars = require('handlebars');
 const { writeTrackedCommandFile } = require('./command-writer');
-const { getThemePack } = require('./themes');
+const { resolveThemePack } = require('./theme-loader');
 
 /**
  * Write AGENTS.md and Cursor rules that point at the agent team protocol.
@@ -22,7 +22,11 @@ async function writeSupplementaryOutputs({
 
   if (supplementary.agentsMd) {
     const tpl = loadTemplate('supplementary/AGENTS.md.hbs');
-    const content = tpl({ ...baseContext, allAgents, themePack: getThemePack(theme) });
+    const content = tpl({
+      ...baseContext,
+      allAgents,
+      themePack: resolveThemePack(theme, { cwd: outputDir }),
+    });
     if (overwriteGeneratedDocs || !(await fs.pathExists(supplementary.agentsMd))) {
       await fs.writeFile(supplementary.agentsMd, content);
       written.push(path.relative(outputDir, supplementary.agentsMd).replace(/\\/g, '/'));
@@ -31,7 +35,11 @@ async function writeSupplementaryOutputs({
 
   if (supplementary.cursorRule) {
     const tpl = loadTemplate('supplementary/cursor-rule.mdc.hbs');
-    const content = tpl({ ...baseContext, allAgents, themePack: getThemePack(theme) });
+    const content = tpl({
+      ...baseContext,
+      allAgents,
+      themePack: resolveThemePack(theme, { cwd: outputDir }),
+    });
     await fs.ensureDir(path.dirname(supplementary.cursorRule));
     if (overwriteGeneratedDocs || !(await fs.pathExists(supplementary.cursorRule))) {
       await fs.writeFile(supplementary.cursorRule, content);
@@ -51,8 +59,8 @@ async function writeTeamRouter({ commandDirs, baseContext, allAgents, theme, loa
   const content = tpl({
     ...baseContext,
     allAgents,
-    themePack: getThemePack(theme),
-    startAgent: getThemePack(theme).startCommand,
+    themePack: resolveThemePack(theme, { cwd: baseContext.outputDir || '.' }),
+    startAgent: resolveThemePack(theme, { cwd: baseContext.outputDir || '.' }).startCommand,
   });
 
   for (const commandsDir of commandDirs) {
