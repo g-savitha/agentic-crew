@@ -100,14 +100,14 @@ describe('invalid optional roles', () => {
 });
 
 describe('preset theme precedence', () => {
-  it('enterprise preset theme wins over CLI --theme', () => {
+  it('CLI --theme wins over preset (preset only affects roster)', () => {
     const answers = answersFromOptions({
       name: 'x',
       yes: true,
       preset: 'enterprise',
       theme: 'phoenix',
     });
-    assert.equal(answers.theme, 'professional');
+    assert.equal(answers.theme, 'phoenix');
   });
 
   it('rejects unknown --theme', () => {

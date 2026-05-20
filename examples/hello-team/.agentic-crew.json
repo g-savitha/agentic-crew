@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packageVersion": "1.0.2",
-  "scaffoldedAt": "2026-05-20T15:03:59.620Z",
+  "scaffoldedAt": "2026-05-20T15:17:12.460Z",
   "theme": "phoenix",
   "catalogCommand": "lumos",
   "targets": [
@@ -99,16 +99,16 @@
     ".claude/commands/mcgonagall.md": "ba12850f3fea43b2cffa7934ac3f7cd8416970b0aebdf55d2575922aa2c1578f",
     ".claude/commands/qa.md": "7c7dbca551ffb8c1a5354242c16b44acca62a6d4728544737b457114d68cb99c",
     ".claude/commands/moody.md": "9500db9ec65b09b6026aac06ce3912d13e2743b3130e32b4965a4ebc2840ad62",
-    ".claude/commands/devops.md": "4fca7ab5fac54d28acb974c2949f88611859e63095cd751c72b7743ab7df90f8",
+    ".claude/commands/devops.md": "01ded46da1da621884f31aedadadc077d636cc6da658d5f8790dcdc6952e9d5e",
     ".claude/commands/george.md": "4fc01f97f973ccb77f3e4ad54f3492fb007c31f7cf94345623aab2580f7f6094",
-    ".claude/commands/security.md": "9dcbaddcedfa60f2056f1299a65cfb75e452dacb463130b98340c9f61a38c0e2",
+    ".claude/commands/security.md": "f640497692a2c9a940eea0f3ed684ddb8ef5b16f6ae08becd026ff66bc83f3e7",
     ".claude/commands/snape.md": "9959bd679f9232a4a16854f76143008a308ab9bebe4b1a3102ef7c17b178a13d",
     ".claude/commands/frontend.md": "3d5614d9cad2e417259c647d95df930527b25383b80c9b767706cdd1fded97af",
     ".claude/commands/ginny.md": "68a96cc98a61ee670c6363cf486c50adc1dfe2bcfc66f14c28751debce09a50c",
     ".claude/commands/backend.md": "c0cfee78bf98cc876cb5ac5d705ae3f18168e084a3618d4226844aef21a4df7e",
     ".claude/commands/harry.md": "bbfa1a0f2e3198933a1efcb25821ca91f7d2fa78924910ec47619199b4806ae3",
-    ".claude/commands/setup.md": "dd586efaf62f8761fd49ca52748bc8fea0e29465fa91810b756941beb3a84932",
-    ".claude/commands/lumos.md": "bcb957a89250494e9a4feaffeaa53771302ce51a76ea31fabeea2a28ffcb7400",
+    ".claude/commands/setup.md": "a154d7faa5c204ffdba5203bb94d0902d8f754d7a6f37e98b48c9556eab9b159",
+    ".claude/commands/lumos.md": "179de86b20cb855cee935cb8b095b37566902d14997fe262b92fe1f7be1171ad",
     ".claude/commands/team.md": "a2fe97bb640738b874452a2efd73b9df56f6390e3c0fc51e7d18e9163994ac93"
   },
   "withSecurityCi": false

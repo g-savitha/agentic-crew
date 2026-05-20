@@ -37,10 +37,11 @@ mkdir -p .agent/status .agent/messages .agent/backlog .agent/reports
 {{/each}}
 ```
 
-**Step 4 — Create backlog and heartbeat** (if not present):
+**Step 4 — Create backlog, heartbeat, and retro** (if not present):
 ```bash
 [ -f ".agent/backlog/tasks.md" ] || echo "(see scaffolded tasks.md)" > .agent/backlog/tasks.md
 [ -f ".agent/reports/heartbeat.md" ] || printf '%s\n' "---" "updated: never" "blockers: []" "decisions_needed: []" "accomplishments: []" "---" "# Team heartbeat" > .agent/reports/heartbeat.md
+[ -f ".agent/reports/retro.md" ] || printf '%s\n' "# Sprint retrospective" "" "Append dated sections after each sprint (Scrum owns this file)." > .agent/reports/retro.md
 ```
 
 **Step 5 — Create `docs/` structure**:

@@ -19,7 +19,8 @@ npm test
 | Shared protocol | `src/templates/agent/*.md.hbs`, `src/templates/partials/` |
 | CLI commands | `src/index.js`, `bin/cli.js` |
 | Scaffold logic | `src/scaffolder.js`, `src/runbooks.js` |
-| Validation | `src/doctor.js`, `src/heartbeat.js` |
+| Validation | `src/doctor.js`, `src/heartbeat.js`, `src/status.js`, `src/catalog.js` |
+| Presets / roster | `src/presets.js`, `src/agents.js` (`resolveCatalogAgentGroups`) |
 | Tests | `test/*.test.js` |
 
 ## Pull request checklist
@@ -27,7 +28,8 @@ npm test
 - [ ] `npm test` passes locally
 - [ ] New behavior has tests (unit or CLI e2e)
 - [ ] README / `docs/SCHEMA.md` updated if user-facing
-- [ ] `CHANGELOG.md` entry under `[Unreleased]` or new version
+- [ ] `CHANGELOG.md` entry under `[Unreleased]` or new version section
+- [ ] `/lumos` and `/help` catalogs list only agents on the active preset roster
 - [ ] Heartbeat and `.agent/README.md` protocol stay consistent across templates
 
 ## Release checklist (maintainers)

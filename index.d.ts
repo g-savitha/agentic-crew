@@ -150,6 +150,22 @@ export function runManifestMigrations(manifest: object): { manifest: object; app
 export function appendGitignoreRecommendations(outputDir: string): Promise<{ appended: boolean; gitignorePath: string }>;
 export function validateHeartbeatContent(content: string): { valid: boolean; reason?: string };
 export function validateStatusContent(content: string): { valid: boolean; reason?: string };
+export function validateCatalogContent(
+  content: string,
+  params: { agents: Array<{ file: string; command?: string | null }>; catalogCommand: string }
+): string[];
+export function resolveCatalogAgentGroups(
+  answers: ScaffoldAnswers,
+  theme?: 'phoenix' | 'professional'
+): {
+  defaultAgents: AgentDefinition[];
+  conditionalAgents: AgentDefinition[];
+  optionalAgents: AgentDefinition[];
+};
+export function documentationInboxFor(allAgents: AgentDefinition[]): string;
 export function writeStarterRunbooks(options: object): Promise<string[]>;
 export function getThemePack(themeId?: 'phoenix' | 'professional'): ThemePack;
+export function applyThemePack(agent: AgentDefinition, themeId?: 'phoenix' | 'professional'): AgentDefinition;
+export const THEME_PACKS: { phoenix: ThemePack; professional: ThemePack };
+export const PHOENIX: ThemePack;
 export function catalogCommandForTheme(theme?: 'phoenix' | 'professional'): string;

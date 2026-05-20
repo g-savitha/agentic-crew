@@ -6,6 +6,7 @@ const os = require('os');
 const { scaffold } = require('../src/scaffolder');
 const { runDoctor } = require('../src/doctor');
 const { validateHeartbeatContent } = require('../src/heartbeat');
+const { validateStatusContent } = require('../src/status');
 const { resolvePreset } = require('../src/presets');
 const { answersFromOptions } = require('../src/options');
 const { testScaffoldOpts } = require('./_helpers');
@@ -222,6 +223,74 @@ describe('v1 hardening', () => {
     assert.equal(doctor.ok, true);
   });
 
+  it('validateStatusContent accepts scaffolded status files', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-status-val-'));
+    await scaffold(
+      {
+        projectName: 'status-val',
+        frontend: 'none',
+        backend: 'none',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    const content = await fs.readFile(path.join(tmp, '.agent', 'status', 'manager.md'), 'utf8');
+    assert.equal(validateStatusContent(content).valid, true);
+  });
+
+  it('doctor --strict fails on invalid status frontmatter', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-status-strict-'));
+    await scaffold(
+      {
+        projectName: 'status-strict',
+        frontend: 'none',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    await fs.writeFile(path.join(tmp, '.agent', 'status', 'manager.md'), '# broken\n');
+
+    const strict = await runDoctor(tmp, { strict: true, json: true, quiet: true });
+    assert.equal(strict.ok, false);
+    assert.ok(strict.issues.some((i) => /status.*manager/i.test(i)));
+  });
+
+  it('doctor --strict fails when catalog lists agents not on roster', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-cat-strict-'));
+    const preset = resolvePreset('startup');
+    await scaffold(
+      {
+        projectName: 'cat-strict',
+        frontend: 'react',
+        backend: 'nodejs',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+        preset: preset.key,
+        presetExcludeFiles: preset.excludeFiles,
+      },
+      testScaffoldOpts({ force: true })
+    );
+    const lumosPath = path.join(tmp, '.claude', 'commands', 'lumos.md');
+    const lumos = await fs.readFile(lumosPath, 'utf8');
+    await fs.writeFile(lumosPath, `${lumos}\n| Ghost | \`/cedric\` | \`/documentation\` | Docs | Example |\n`);
+
+    const strict = await runDoctor(tmp, { strict: true, json: true, quiet: true });
+    assert.equal(strict.ok, false);
+    assert.ok(strict.issues.some((i) => /catalog.*cedric|catalog references/i.test(i)));
+  });
+
   it('config-driven init scaffolds security CI and runbooks', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-cfg-init-'));
     const { loadProjectConfig, mergeConfigWithOptions } = require('../src/config');
@@ -232,6 +301,7 @@ describe('v1 hardening', () => {
     const answers = answersFromOptions(merged);
     assert.ok(answers);
     assert.equal(answers.withSecurityCi, false);
+    assert.equal(answers.theme, 'phoenix');
 
     await scaffold(
       {

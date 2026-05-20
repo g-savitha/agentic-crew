@@ -19,7 +19,7 @@ describe('manifest migrations', () => {
     });
     assert.equal(manifest.schemaVersion, 1);
     assert.deepEqual(manifest.commandHashes, {});
-    assert.equal(manifest.preset, 'full');
+    assert.equal(manifest.preset, 'startup');
     assert.deepEqual(manifest.supplementaryFiles, []);
     assert.ok(applied.length >= 4);
     assert.deepEqual(manifest.agents, [{ file: 'manager' }]);

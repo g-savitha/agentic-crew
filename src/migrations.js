@@ -20,8 +20,8 @@ function runManifestMigrations(manifest) {
   }
 
   if (!next.preset) {
-    next.preset = 'full';
-    applied.push('set preset=full');
+    next.preset = 'startup';
+    applied.push('set preset=startup');
   }
 
   if (!next.supplementaryFiles) {

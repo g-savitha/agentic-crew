@@ -183,7 +183,10 @@ program
   .option('--dir <path>', 'Project directory', '.')
   .option('--fix', 'Repair missing scaffold files (does not prune stale files unless --prune)')
   .option('--prune', 'With --fix, remove command/status/message files no longer in the manifest roster')
-  .option('--strict', 'Treat protocol warnings (heartbeat, messages, runbooks, security CI) as errors')
+  .option(
+    '--strict',
+    'Treat protocol warnings as errors (status frontmatter, catalog roster, heartbeat, messages, retro, runbooks, security CI)'
+  )
   .option('--json', 'Output machine-readable JSON')
   .action(async (opts) => {
     const { ok } = await runDoctor(opts.dir, {

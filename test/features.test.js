@@ -143,10 +143,40 @@ describe('IDE targets', () => {
     assert.ok(manifest.supplementaryFiles?.includes('.cursor/rules/agentic-crew.mdc'));
   });
 
-  it('startup preset uses professional theme and lean roster', () => {
+  it('startup preset uses lean roster without forcing theme', () => {
     const preset = resolvePreset('startup');
-    assert.equal(preset.theme, 'professional');
+    assert.equal(preset.theme, null);
     assert.ok(preset.excludeFiles.has('documentation'));
+  });
+
+  it('startup phoenix catalog lists only scaffolded agents', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-catalog-'));
+    const preset = resolvePreset('startup');
+    await scaffold(
+      {
+        projectName: 'catalog-app',
+        frontend: 'react',
+        backend: 'nodejs',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+        preset: preset.key,
+        presetExcludeFiles: preset.excludeFiles,
+      },
+      testScaffoldOpts({ force: true })
+    );
+    const lumos = await fs.readFile(path.join(tmp, '.claude', 'commands', 'lumos.md'), 'utf8');
+    assert.doesNotMatch(lumos, /\/cedric|\/documentation|\/lockhart|\/marketing/i);
+    assert.match(lumos, /\/manager|\/frontend|\/harry/i);
+    const { validateCatalogContent } = require('../src/catalog');
+    const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
+    const issues = validateCatalogContent(lumos, {
+      agents: manifest.agents,
+      catalogCommand: 'lumos',
+    });
+    assert.deepEqual(issues, []);
   });
 
   it('resolveAllAgents applies preset exclusions before stack agents', () => {

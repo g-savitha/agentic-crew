@@ -16,9 +16,10 @@ domains:
 # claude | cursor | codex | windsurf | both | all
 target: all
 
-# full | minimal | enterprise | startup
+# full | minimal | enterprise | startup (roster size only)
 preset: startup
-theme: professional
+# phoenix (default) | professional — independent of preset; CLI flags override
+theme: phoenix
 
 # optionalRoles:
 #   - sre

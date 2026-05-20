@@ -6,7 +6,7 @@ const { catalogCommandForTheme } = require('./constants');
  * Build the set of command filenames that should exist for the current roster.
  * @param {import('./agents').AgentDefinition[]} allAgents
  * @param {string} theme
- * @param {string} [catalogCommand] manifest catalog command (lumos, help, or external)
+ * @param {string} [catalogCommand] manifest catalog command (lumos or help)
  * @returns {Set<string>}
  */
 function expectedCommandFilenames(allAgents, theme, catalogCommand) {

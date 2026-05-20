@@ -18,6 +18,8 @@ const { validateManifestSchema } = require('./manifest-schema-validator');
 const { pruneStaleFiles } = require('./prune');
 const { validateHeartbeatContent } = require('./heartbeat');
 const { validateStatusContent } = require('./status');
+const { validateCatalogContent } = require('./catalog');
+const { resolveCatalogAgentGroups, documentationInboxFor } = require('./agents');
 const { writeStarterRunbooks, RUNBOOK_SPECS } = require('./runbooks');
 const { PRESETS, PRESET_KEYS, resolvePreset, applyPresetFilter } = require('./presets');
 const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
@@ -46,6 +48,9 @@ module.exports = {
   pruneStaleFiles,
   validateHeartbeatContent,
   validateStatusContent,
+  validateCatalogContent,
+  resolveCatalogAgentGroups,
+  documentationInboxFor,
   writeStarterRunbooks,
   RUNBOOK_SPECS,
   resolvePreset,

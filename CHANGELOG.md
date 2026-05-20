@@ -2,22 +2,37 @@
 
 All notable changes to this project are documented here.
 
+> **Note:** Sections for releases before **1.0.2** describe history as-shipped (e.g. external theme packs in 1.0.0 were removed in 1.0.2). Current behavior is defined by the latest release section and `docs/SCHEMA.md`.
+
 ## [1.0.2] - 2026-05-20
 
 ### Added
 
 - **`.agent/reports/retro.md`** starter scaffold (Scrum retrospective protocol)
-- **`doctor --strict`** validates agent status frontmatter, manifest roster vs stacks/preset, and `retro.md`
+- **`doctor --strict`** validates agent status frontmatter, manifest roster vs stacks/preset, catalog vs roster, and `retro.md`
+- **`src/catalog.js`** — `validateCatalogContent()` for `/lumos` and `/help` roster checks
+- **`documentationInbox`** — lean presets route doc handoffs to `staff-engineer` when Documentation is excluded
 - README section: **vs CrewAI / LangGraph**
 - Windsurf scaffold test; extended CLI e2e (`--strict`, config-driven init)
-- Synced **`index.d.ts`** with public API (`validateStatusContent`, `validateHeartbeatContent`, `getThemePack`, …)
+- Synced **`index.d.ts`** with public API (`validateCatalogContent`, `resolveCatalogAgentGroups`, `documentationInboxFor`, `applyThemePack`, …)
 
 ### Changed
 
 - Built-in themes only: **`phoenix`** and **`professional`** (no custom npm theme packs yet)
 - README hero copy: you invoke the team; no implied autonomous execution
-- Presets no longer override theme (always Phoenix)
-- Manifest schema: `theme` enum is `phoenix` or `professional`
+- **Presets control roster only** — `theme` comes from `--theme` / config (defaults to `phoenix`); presets no longer force `professional`
+- **`/lumos` and `/help`** list only agents on the active preset roster (not the full default table)
+- Manifest migrations: missing `preset` → `startup` (was `full`)
+- Init summary: character/alias columns use ` · ` separator (fixes cramped `dumbledoreor` display)
+
+### Fixed
+
+- Catalog listed agents (e.g. `/cedric`, `/documentation`) that were not scaffolded under `startup` preset
+- Scaffolder wrote full default roster while manifest said `startup` when `presetExcludeFiles` was omitted
+- `doctor --fix` / `/setup` did not create `retro.md`; setup template now includes retro bootstrap
+- `doctor` validates catalog content against expected roster; checks `expectedAgents` for status/skills
+- `examples/hello-team/` aligned (`theme: phoenix`, filtered `lumos`, `documentationInbox` in skills)
+- Cross-agent templates referenced `.agent/messages/documentation.md` on teams without a Documentation agent
 
 ### Removed
 

@@ -60,7 +60,7 @@
 
 ## How to Add an Entry
 
-Write to `.agent/messages/documentation.md`:
+Write to `.agent/messages/staff-engineer.md`:
 
 ```
 **Domain**: <section name from Table of Contents>

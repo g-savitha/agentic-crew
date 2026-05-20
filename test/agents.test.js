@@ -156,11 +156,31 @@ describe('scaffold dry-run and doctor', () => {
       outputDir: tmp,
       theme: 'phoenix',
       targets: 'both',
+      preset: 'full',
     };
     const result = await scaffold(answers, testScaffoldOpts({ dryRun: true }));
     assert.equal(result.dryRun, true);
     assert.equal(await fs.pathExists(path.join(tmp, '.agent')), false);
     assert.equal(countAgents(result.allAgents), 16);
+  });
+
+  it('dry-run defaults to startup preset roster', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'agentic-crew-startup-'));
+    const result = await scaffold(
+      {
+        projectName: 'startup-app',
+        frontend: 'react',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'phoenix',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ dryRun: true })
+    );
+    assert.equal(countAgents(result.allAgents), 10);
+    assert.ok(!result.allAgents.some((a) => a.file === 'documentation'));
   });
 
   it('professional scaffold omits character aliases', async () => {

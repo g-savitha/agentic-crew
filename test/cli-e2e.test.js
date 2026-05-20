@@ -63,7 +63,7 @@ describe('CLI end-to-end', () => {
     assert.equal(init.status, 0, init.stderr || init.stdout);
     assert.ok(await fs.pathExists(path.join(tmp, '.agentic-crew.json')));
     const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
-    assert.equal(manifest.theme, 'professional');
+    assert.equal(manifest.theme, 'phoenix');
 
     const doctor = runCli(['doctor', '--dir', tmp, '--strict', '--json'], tmp);
     assert.equal(doctor.status, 0, doctor.stderr || doctor.stdout);

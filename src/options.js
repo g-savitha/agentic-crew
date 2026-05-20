@@ -19,9 +19,9 @@ function answersFromOptions(opts) {
 
   const customRoles = parseCustomRoles(opts.customRole);
   const presetDef = resolvePreset(opts.preset || 'startup');
-  const theme = (presetDef.theme || opts.theme || 'phoenix').toLowerCase();
+  const theme = (opts.theme || presetDef.theme || 'phoenix').toLowerCase();
   if (!THEMES.includes(theme)) {
-    throw new Error(`Invalid --theme "${opts.theme}". Use: ${THEMES.join(', ')}`);
+    throw new Error(`Invalid --theme "${opts.theme || theme}". Use: ${THEMES.join(', ')}`);
   }
 
   const targetRaw = opts.target || 'both';

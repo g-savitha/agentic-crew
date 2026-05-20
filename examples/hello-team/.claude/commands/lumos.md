@@ -20,11 +20,6 @@ List every available agent command, character personas, and the communication pr
 | Mad-Eye Moody | `/moody` | `/qa` | QA Engineer | Finds every weakness before users do — paranoid in exactly the right way |
 | George Weasley | `/george` | `/devops` | DevOps Engineer | Makes operations spectacular and reliable — always has a trick when things break |
 | Severus Snape | `/snape` | `/security` | Security Engineer | Finds vulnerabilities in the most twisted paths — nothing escapes the double agent&#x27;s eye |
-| Cedric Diggory | `/cedric` | `/documentation` | Documentation Engineer | Precise, fair, and thorough — the most trustworthy chronicler in the order |
-| Luna Lovegood | `/luna` | `/researcher` | Researcher | Finds information others overlook — unconventional approaches that turn out to be correct |
-| Oliver Wood | `/oliver` | `/release-manager` | Release Manager | Relentless about shipping — treats every release like the Quidditch Cup final |
-| Gilderoy Lockhart | `/lockhart` | `/marketing` | Marketing | Makes the product sound extraordinary — Witch Weekly&#x27;s Most-Charming-Smile five years running |
-| Viktor Krum | `/krum` | `/perf` | Performance Engineer | Elite performance is his only mode — optimizes every system to world-championship standards |
 
 ## Stack Agents
 
@@ -44,21 +39,14 @@ List every available agent command, character personas, and the communication pr
 
 ## How to Address an Agent
 
-Every agent responds to two commands — their character name or their role alias:
-
-```
-/dumbledore   →  Engineering Manager
-/hermione     →  Staff Engineer
-/moody        →  QA Engineer
-/snape        →  Security Engineer
-```
+Every agent responds to two commands — their character name or their role alias (see tables above).
 
 Speak to them directly in your agentic IDE:
 
 ```
-/dumbledore here is what we are building this sprint...
-/hermione please review the PR at #42
-/moody run a full bug hunt on the auth module
+/team <agent> <task>
+/dumbledore <task>
+/team qa run a full bug hunt on the auth module
 ```
 
 ## Communication Protocol

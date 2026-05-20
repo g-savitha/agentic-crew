@@ -18,7 +18,7 @@ The file `.agentic-crew.json` is the contract between your project and the `agen
 | Field | Description |
 |-------|-------------|
 | `theme` | `phoenix` (character names + aliases) or `professional` (role-based commands only) |
-| `preset` | `startup` (default for new installs), `full`, `minimal`, or `enterprise` |
+| `preset` | `startup` (default), `full`, `minimal`, or `enterprise` — controls **roster size**, not theme |
 | `targets` | `both`, `all`, or individual IDE keys |
 | `supplementaryFiles` | e.g. `AGENTS.md`, `.cursor/rules/agentic-crew.mdc` |
 | `customRoles` | User-defined agents |
@@ -30,7 +30,7 @@ On `agentic-crew update`, structural migrations run automatically:
 
 - Missing `schemaVersion` → set to `1`
 - Missing `commandHashes` → `{}`
-- Missing `preset` → `full` (legacy manifests only; new installs default to `startup`)
+- Missing `preset` → `startup` (legacy manifests only)
 - Missing `supplementaryFiles` → `[]`
 
 Agent roster is **not** changed by migrations. To change team composition, re-run `init --force` or edit the manifest deliberately.
@@ -45,6 +45,19 @@ Built-in themes only:
 | `professional` | `/help` | `/manager` | Role-based commands only |
 
 Custom npm theme packs (`@agentic-crew/theme-*`) are planned for a future release.
+
+## Presets (roster)
+
+| Preset | Excludes from core roster |
+|--------|---------------------------|
+| `startup` (default) | `marketing`, `researcher`, `release-manager`, `perf`, `documentation` |
+| `minimal` | `marketing`, `researcher`, `release-manager`, `perf` |
+| `enterprise` | `marketing` |
+| `full` | *(none)* |
+
+Stack agents (frontend, backend, domain experts) and optional roles (`sre`, `tpm`) are added on top of the preset-filtered core.
+
+When Documentation is excluded, agent skills route knowledge handoffs to `.agent/messages/staff-engineer.md` instead of `documentation.md`.
 
 ## JSON Schema
 

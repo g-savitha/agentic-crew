@@ -18,6 +18,8 @@ const {
   resolveConditionalAgents,
   resolveOptionalAgents,
   resolveAllAgents,
+  resolveCatalogAgentGroups,
+  documentationInboxFor,
   templatePathForAgent,
   validateCustomRoles,
 } = require('./agents');
@@ -38,6 +40,7 @@ const {
 const { writeSupplementaryOutputs, writeTeamRouter } = require('./supplementary');
 const { getThemePack } = require('./themes');
 const { writeStarterRunbooks } = require('./runbooks');
+const { resolvePreset } = require('./presets');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const templateCache = new Map();
@@ -85,6 +88,7 @@ async function scaffold(answers, options = {}) {
   const supplementary = resolveSupplementaryPaths(targetsInput, outputDir);
   const targets = serializeTargets(targetsInput);
 
+  const presetDef = resolvePreset(answers.preset || 'startup');
   const sanitizedAnswers = {
     ...answers,
     projectName: sanitizeUserText(answers.projectName || 'your project', MAX_PROJECT_NAME),
@@ -97,6 +101,8 @@ async function scaffold(answers, options = {}) {
       character: sanitizeUserText(r.character, MAX_PROJECT_NAME),
       trait: sanitizeUserText(r.trait, MAX_DESCRIPTION),
     })),
+    preset: presetDef.key,
+    presetExcludeFiles: answers.presetExcludeFiles || presetDef.excludeFiles,
   };
 
   validateCustomRoles(sanitizedAnswers.customRoles);
@@ -105,9 +111,11 @@ async function scaffold(answers, options = {}) {
   const conditionalAgents = resolveConditionalAgents(sanitizedAnswers);
   const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
   const allAgents = resolveAllAgents(sanitizedAnswers, theme);
+  const catalogGroups = resolveCatalogAgentGroups(sanitizedAnswers, theme);
   const sanitizedCustomRoles = sanitizedAnswers.customRoles;
   const themePack = getThemePack(theme);
   const catalogCommand = themePack.catalogCommand;
+  const documentationInbox = documentationInboxFor(allAgents);
 
   const baseContext = {
     outputDir,
@@ -125,6 +133,7 @@ async function scaffold(answers, options = {}) {
     isProfessional: !themePack.useCharacterAliases,
     teamAgents: allAgents,
     allAgents,
+    documentationInbox,
     commandDirs: commandDirs.map((d) => path.relative(outputDir, d).replace(/\\/g, '/')),
   };
 
@@ -271,12 +280,12 @@ async function scaffold(answers, options = {}) {
     const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
     const catalogCtx = {
       ...baseContext,
-      defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
-      conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
-      optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
+      defaultAgents: catalogGroups.defaultAgents,
+      conditionalAgents: catalogGroups.conditionalAgents,
+      optionalAgents: catalogGroups.optionalAgents,
       customRoles: sanitizedCustomRoles,
-      hasConditionalAgents: conditionalAgents.length > 0,
-      hasOptionalAgents: optionalAgents.length > 0,
+      hasConditionalAgents: catalogGroups.conditionalAgents.length > 0,
+      hasOptionalAgents: catalogGroups.optionalAgents.length > 0,
       hasCustomRoles: sanitizedCustomRoles.length > 0,
     };
     await writeTrackedCommandFile({
@@ -386,7 +395,7 @@ async function scaffold(answers, options = {}) {
     theme,
     catalogCommand,
     targets,
-    preset: answers.preset || 'startup',
+    preset: sanitizedAnswers.preset,
     project: {
       name: baseContext.projectName,
       description: baseContext.projectDescription,
@@ -501,12 +510,15 @@ function printManifest(answers, result) {
         console.log('  ' + chalk.cyan(label.padEnd(28)) + chalk.white(`/${r.file}`));
       } else {
         const cmd = r.command || r.file;
+        const slashCmd = `/${cmd}`;
+        const slashFile = `/${r.file}`;
+        const cmdPad = Math.max(maxCmdPad(cmd, r.file) + 1, slashCmd.length);
         console.log(
           '  ' +
             chalk.cyan(label.padEnd(24)) +
-            chalk.white(('/' + cmd).padEnd(maxCmdPad(cmd, r.file) + 3)) +
-            chalk.dim('or  ') +
-            chalk.dim(`/${r.file}`)
+            chalk.white(slashCmd.padEnd(cmdPad)) +
+            chalk.dim(' · ') +
+            chalk.dim(slashFile)
         );
       }
     }
@@ -558,12 +570,15 @@ function printAgentRows(agents, professional) {
       continue;
     }
     const cmd = a.command || a.file;
+    const slashCmd = `/${cmd}`;
+    const slashFile = `/${a.file}`;
+    const cmdPad = Math.max(maxCmd + 1, slashCmd.length);
     console.log(
       '  ' +
         chalk.cyan(label.padEnd(maxChar + 2)) +
-        chalk.white(('/' + cmd).padEnd(maxCmd + 3)) +
-        chalk.dim('or  ') +
-        chalk.dim(`/${a.file}`) +
+        chalk.white(slashCmd.padEnd(cmdPad)) +
+        chalk.dim(' · ') +
+        chalk.dim(slashFile) +
         chalk.dim(`  (${a.role})`)
     );
   }
@@ -581,6 +596,7 @@ async function previewCommandFiles(answers, options = {}) {
   const targetsInput = answers.targets || 'both';
   const commandDirs = resolveCommandDirs(targetsInput, outputDir);
 
+  const presetDef = resolvePreset(answers.preset || 'startup');
   const sanitizedAnswers = {
     ...answers,
     projectName: sanitizeUserText(answers.projectName || 'your project', MAX_PROJECT_NAME),
@@ -593,15 +609,19 @@ async function previewCommandFiles(answers, options = {}) {
       character: sanitizeUserText(r.character, MAX_PROJECT_NAME),
       trait: sanitizeUserText(r.trait, MAX_DESCRIPTION),
     })),
+    preset: presetDef.key,
+    presetExcludeFiles: answers.presetExcludeFiles || presetDef.excludeFiles,
   };
 
   const stack = resolveStack(sanitizedAnswers);
   const conditionalAgents = resolveConditionalAgents(sanitizedAnswers);
   const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
   const allAgents = resolveAllAgents(sanitizedAnswers, theme);
+  const catalogGroups = resolveCatalogAgentGroups(sanitizedAnswers, theme);
   const sanitizedCustomRoles = sanitizedAnswers.customRoles;
   const themePack = getThemePack(theme);
   const catalogCommand = themePack.catalogCommand;
+  const documentationInbox = documentationInboxFor(allAgents);
 
   const baseContext = {
     outputDir,
@@ -619,6 +639,7 @@ async function previewCommandFiles(answers, options = {}) {
     isProfessional: !themePack.useCharacterAliases,
     teamAgents: allAgents,
     allAgents,
+    documentationInbox,
     commandDirs: commandDirs.map((d) => path.relative(outputDir, d).replace(/\\/g, '/')),
   };
 
@@ -676,12 +697,12 @@ async function previewCommandFiles(answers, options = {}) {
       rel: path.relative(outputDir, path.join(commandsDir, `${catalogCmd}.md`)).replace(/\\/g, '/'),
       content: catalogTpl({
         ...baseContext,
-        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
-        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
-        optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
+        defaultAgents: catalogGroups.defaultAgents,
+        conditionalAgents: catalogGroups.conditionalAgents,
+        optionalAgents: catalogGroups.optionalAgents,
         customRoles: sanitizedCustomRoles,
-        hasConditionalAgents: conditionalAgents.length > 0,
-        hasOptionalAgents: optionalAgents.length > 0,
+        hasConditionalAgents: catalogGroups.conditionalAgents.length > 0,
+        hasOptionalAgents: catalogGroups.optionalAgents.length > 0,
         hasCustomRoles: sanitizedCustomRoles.length > 0,
       }),
     });

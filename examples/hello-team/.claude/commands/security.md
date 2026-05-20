@@ -46,7 +46,7 @@ $ARGUMENTS
 
 ## Troubleshooting Protocol
 
-When you find and fix a vulnerability class, write to `.agent/messages/documentation.md`:
+When you find and fix a vulnerability class, write to `.agent/messages/staff-engineer.md`:
 
 ```
 **Domain**: Security

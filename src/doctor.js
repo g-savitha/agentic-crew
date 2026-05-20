@@ -9,6 +9,8 @@ const { scaffold } = require('./scaffolder');
 const { resolvePreset } = require('./presets');
 const { validateHeartbeatContent } = require('./heartbeat');
 const { validateStatusContent } = require('./status');
+const { validateCatalogContent } = require('./catalog');
+const { catalogCommandForTheme } = require('./constants');
 const { RUNBOOK_SPECS } = require('./runbooks');
 const { resolveAllAgents } = require('./agents');
 
@@ -36,7 +38,7 @@ function manifestToAnswers(manifest, root) {
       description: r.description || '',
     })),
     outputDir: root,
-    theme: manifest.theme || presetDef.theme || 'phoenix',
+    theme: manifest.theme || 'phoenix',
     targets: manifest.targets || 'both',
     preset: presetDef.key,
     presetExcludeFiles: presetDef.excludeFiles,
@@ -128,7 +130,16 @@ async function runDoctor(projectDir = '.', options = {}) {
     }
   }
 
-  for (const agent of manifest.agents || []) {
+  const manifestAgents = manifest.agents || [];
+  for (const agent of manifestAgents) {
+    if (!expectedAgents.some((e) => e.file === agent.file)) {
+      const msg = `Manifest lists agent "${agent.file}" not in current stacks/preset roster`;
+      if (strict) issues.push(msg);
+      else warnings.push(msg);
+    }
+  }
+
+  for (const agent of expectedAgents) {
     const statusFile = path.join(agentDir, 'status', `${agent.file}.md`);
     const messageFile = path.join(agentDir, 'messages', `${agent.file}.md`);
     if (!(await fs.pathExists(statusFile))) {
@@ -183,6 +194,28 @@ async function runDoctor(projectDir = '.', options = {}) {
     }
   }
 
+  const catalogCmd = manifest.catalogCommand || catalogCommandForTheme(manifest.theme || 'phoenix');
+  for (const commandsDir of commandDirs) {
+    const catalogPath = path.join(commandsDir, `${catalogCmd}.md`);
+    if (!(await fs.pathExists(catalogPath))) {
+      issues.push(`Missing catalog skill: ${path.relative(root, catalogPath)}`);
+      continue;
+    }
+    const catalogContent = await fs.readFile(catalogPath, 'utf8');
+    const catalogIssues = validateCatalogContent(catalogContent, {
+      agents: expectedAgents.map((a) => ({ file: a.file, command: a.command || null })),
+      catalogCommand: catalogCmd,
+    });
+    for (const line of catalogIssues) {
+      const msg = `Catalog ${path.relative(root, catalogPath)}: ${line}`;
+      if (strict) issues.push(msg);
+      else warnings.push(msg);
+    }
+    if (catalogIssues.length === 0) {
+      ok.push(`Catalog matches roster (${path.relative(root, catalogPath)})`);
+    }
+  }
+
   const retro = path.join(agentDir, 'reports', 'retro.md');
   if (!(await fs.pathExists(retro))) {
     const msg = 'Missing .agent/reports/retro.md';
@@ -223,19 +256,6 @@ async function runDoctor(projectDir = '.', options = {}) {
     issues.push('Missing .agent/backlog/tasks.md');
   } else {
     ok.push('backlog/tasks.md present');
-  }
-
-  for (const role of manifest.customRoles || []) {
-    const statusFile = path.join(agentDir, 'status', `${role.file}.md`);
-    if (!(await fs.pathExists(statusFile))) {
-      issues.push(`Missing custom role status: .agent/status/${role.file}.md`);
-    }
-    for (const commandsDir of commandDirs) {
-      const skillFile = path.join(commandsDir, `${role.file}.md`);
-      if (!(await fs.pathExists(skillFile))) {
-        issues.push(`Missing custom role skill: ${path.relative(root, skillFile)}`);
-      }
-    }
   }
 
   if (manifest.withSecurityCi) {

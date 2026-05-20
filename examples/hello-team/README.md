@@ -17,9 +17,13 @@ Or scaffold from the repo root:
 npx agentic-crew init --yes --config examples/hello-team/.agentic-crew.yaml --output-dir examples/hello-team --force
 ```
 
+## Config
+
+`.agentic-crew.yaml` uses `preset: startup` (lean roster — no Documentation/Marketing/Perf) and `theme: phoenix` (character aliases + `/lumos`). Doc handoffs from DevOps/Security go to `.agent/messages/staff-engineer.md`.
+
 ## What you get
 
-- Skill files under `.cursor/commands/` (and other targets if `target: all`)
+- Skill files under `.claude/commands/` (Claude target in this example)
 - `.agent/` shared state (status, messages, backlog, heartbeat, retro)
 - Starter runbooks under `docs/runbooks/` (`release.md`, `on-call.md`, `incident.md`)
 - `.agentic-crew.json` manifest for `doctor` / `update`

@@ -417,6 +417,37 @@ function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
 }
 
 /**
+ * Agent groups for /lumos and /help catalogs (respects preset exclusions).
+ * @param {object} answers
+ * @param {'phoenix' | 'professional'} [theme]
+ */
+function resolveCatalogAgentGroups(answers, theme = answers.theme || 'phoenix') {
+  const excludeFiles = answers.presetExcludeFiles || null;
+  const defaultAgents = (excludeFiles
+    ? DEFAULT_AGENTS.filter((a) => !excludeFiles.has(a.file))
+    : DEFAULT_AGENTS
+  )
+    .map((a) => enrichAgent(applyTheme(a, theme)));
+
+  const conditionalAgents = resolveConditionalAgents(answers).map((a) =>
+    enrichAgent(applyTheme(a, theme))
+  );
+  const optionalAgents = resolveOptionalAgents(answers).map((a) =>
+    enrichAgent(applyTheme(a, theme))
+  );
+
+  return { defaultAgents, conditionalAgents, optionalAgents };
+}
+
+/**
+ * Inbox slug for cross-agent documentation handoffs when Documentation is not on the roster.
+ * @param {AgentDefinition[]} allAgents
+ */
+function documentationInboxFor(allAgents) {
+  return allAgents.some((a) => a.file === 'documentation') ? 'documentation' : 'staff-engineer';
+}
+
+/**
  * @param {AgentDefinition} agent
  * @returns {string}
  */
@@ -483,6 +514,8 @@ module.exports = {
   resolveOptionalAgents,
   resolveActiveAgents,
   resolveAllAgents,
+  resolveCatalogAgentGroups,
+  documentationInboxFor,
   templatePathForAgent,
   buildReservedSlugs,
   validateCustomRoles,

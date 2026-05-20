@@ -52,13 +52,13 @@ npx agentic-crew doctor
 npx agentic-crew doctor --fix
 
 # Refresh command templates (preserves user-edited skill files and docs)
-npx agentic-crew@1.0.1 update
+npx agentic-crew@1.0.2 update
 
 # Preview update changes
 npx agentic-crew update --dry-run
 
 # Replace user-edited skill files with latest templates
-npx agentic-crew@1.0.1 update --force-overwrite
+npx agentic-crew@1.0.2 update --force-overwrite
 
 # Remove scaffold artifacts (keep .agent/ state)
 npx agentic-crew uninstall --keep-state
@@ -122,7 +122,7 @@ domains:
   - data
 target: all
 preset: startup
-theme: professional
+theme: phoenix
 withSecurityCi: true
 ```
 
@@ -142,8 +142,8 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--domain` | Comma-separated domains (`ml`, `data`, `networking`, …) |
 | `--domain-other` | Additional custom domain label |
 | `--optional` | Comma-separated optional roles: `sre`, `tpm` |
-| `--preset` | `startup` (default), `full`, `minimal`, or `enterprise` |
-| `--theme` | `phoenix` (default) or `professional` |
+| `--preset` | `startup` (default), `full`, `minimal`, or `enterprise` — **roster only** (see table below) |
+| `--theme` | `phoenix` (default) or `professional` — independent of preset; CLI/config wins |
 | `--target` | `claude`, `cursor`, `codex`, `windsurf`, `both` (default), or `all` |
 | `--config` | Path to YAML/JSON config (auto-discovers `.agentic-crew.yaml`) |
 | `--save-config` | Write `.agentic-crew.yaml` after scaffold |
@@ -156,6 +156,17 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--with-gitignore` | Append agentic-crew recommendations to `.gitignore` (or `withGitignore: true` in config) |
 | `--yes` | Skip questionnaire (requires `--name`) |
 | `--json` | Machine-readable JSON output |
+
+**Preset rosters** (core agents; stack and optional roles still apply):
+
+| Preset | Omits from core roster |
+|--------|----------------------|
+| `startup` (default) | documentation, marketing, researcher, release-manager, perf |
+| `minimal` | marketing, researcher, release-manager, perf |
+| `enterprise` | marketing |
+| `full` | — |
+
+Use `--preset full` if you want the Documentation agent (`/documentation` or `/cedric`).
 
 ### `update` options
 
@@ -175,7 +186,7 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--dir` | Project directory (default `.`) |
 | `--fix` | Repair missing scaffold files |
 | `--prune` | With `--fix`, remove files no longer in the manifest roster |
-| `--strict` | Treat heartbeat, message, runbook, and security-CI warnings as errors |
+| `--strict` | Errors on status frontmatter, catalog/roster drift, heartbeat, messages, retro, runbooks, security CI |
 | `--json` | Machine-readable JSON output |
 
 ### `uninstall` options

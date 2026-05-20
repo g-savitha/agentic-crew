@@ -44,7 +44,7 @@ $ARGUMENTS
 
 ## Troubleshooting Protocol
 
-When you solve a non-trivial CI/CD problem, write to `.agent/messages/documentation.md`:
+When you solve a non-trivial CI/CD problem, write to `.agent/messages/staff-engineer.md`:
 
 ```
 **Domain**: CI/CD & Release

@@ -10,13 +10,13 @@ const PRESETS = {
     excludeFiles: ['marketing', 'researcher', 'release-manager', 'perf'],
   },
   enterprise: {
-    label: 'Enterprise — professional theme, lean roster',
-    theme: 'professional',
+    label: 'Enterprise — lean roster (use --theme professional for role-only commands)',
+    theme: null,
     excludeFiles: ['marketing'],
   },
   startup: {
-    label: 'Startup (recommended) — lean delivery team, professional theme',
-    theme: 'professional',
+    label: 'Startup (recommended) — lean delivery roster',
+    theme: null,
     excludeFiles: ['marketing', 'researcher', 'release-manager', 'perf', 'documentation'],
   },
 };
