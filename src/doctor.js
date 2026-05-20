@@ -177,7 +177,9 @@ async function runDoctor(projectDir = '.', options = {}) {
   for (const spec of RUNBOOK_SPECS) {
     const runbookPath = path.join(root, 'docs', 'runbooks', spec.file);
     if (!(await fs.pathExists(runbookPath))) {
-      warnings.push(`Missing starter runbook: docs/runbooks/${spec.file}`);
+      const msg = `Missing starter runbook: docs/runbooks/${spec.file}`;
+      if (strict) issues.push(msg);
+      else warnings.push(msg);
     } else {
       ok.push(`Runbook present: docs/runbooks/${spec.file}`);
     }
@@ -206,7 +208,9 @@ async function runDoctor(projectDir = '.', options = {}) {
   if (manifest.withSecurityCi) {
     const workflow = path.join(root, '.github', 'workflows', 'security.yml');
     if (!(await fs.pathExists(workflow))) {
-      warnings.push('Manifest expects security CI but .github/workflows/security.yml is missing');
+      const msg = 'Manifest expects security CI but .github/workflows/security.yml is missing';
+      if (strict) issues.push(msg);
+      else warnings.push(msg);
     } else {
       ok.push('security.yml workflow present');
     }

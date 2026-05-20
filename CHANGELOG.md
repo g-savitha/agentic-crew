@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 
 ## [1.0.0] - 2026-05-20
 
+### Added (follow-up QA)
+
+- `doctor --strict` now fails on missing starter runbooks and missing `security.yml` when expected
+- Tests: update backfills runbooks; strict runbook check; IDE targets split (codex vs cursor)
+
 ### Added
 
 - **`@agentic-crew/theme-sample`** — publishable reference theme in `packages/theme-sample/`

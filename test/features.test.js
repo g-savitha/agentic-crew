@@ -90,11 +90,8 @@ describe('IDE targets', () => {
     assert.equal(shouldGenerateAgentsMd('all'), true);
   });
 
-  it('scaffolds team router, AGENTS.md, and cursor rule', async (t) => {
-    if (!(await detectCursorWriteAccess())) {
-      t.skip('Cannot create .cursor/ in this environment (sandbox EPERM)');
-    }
-    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-targets-'));
+  it('scaffolds team router and AGENTS.md for codex target', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-targets-codex-'));
     await scaffold(
       {
         projectName: 'targets-app',
@@ -104,23 +101,46 @@ describe('IDE targets', () => {
         customRoles: [],
         outputDir: tmp,
         theme: 'professional',
-        targets: 'all',
+        targets: 'codex',
         preset: 'startup',
       },
       testScaffoldOpts({ force: true })
     );
 
-    assert.ok(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'team.md')));
     assert.ok(await fs.pathExists(path.join(tmp, '.codex', 'skills', 'team.md')));
     assert.ok(await fs.pathExists(path.join(tmp, 'AGENTS.md')));
-    assert.ok(await fs.pathExists(path.join(tmp, '.cursor', 'rules', 'agentic-crew.mdc')));
-
-    const team = await fs.readFile(path.join(tmp, '.cursor', 'commands', 'team.md'), 'utf8');
+    const team = await fs.readFile(path.join(tmp, '.codex', 'skills', 'team.md'), 'utf8');
     assert.match(team, /Agent Router/);
     assert.match(team, /\/team manager/);
 
     const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
     assert.ok(manifest.supplementaryFiles?.includes('AGENTS.md'));
+  });
+
+  it('scaffolds cursor rule when cursor target is selected', async (t) => {
+    if (!(await detectCursorWriteAccess())) {
+      t.skip('Cannot create .cursor/ in this environment (sandbox EPERM)');
+    }
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-targets-cursor-'));
+    await scaffold(
+      {
+        projectName: 'targets-cursor-app',
+        frontend: 'none',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'professional',
+        targets: 'cursor',
+        preset: 'startup',
+      },
+      testScaffoldOpts({ force: true })
+    );
+
+    assert.ok(await fs.pathExists(path.join(tmp, '.cursor', 'commands', 'team.md')));
+    assert.ok(await fs.pathExists(path.join(tmp, '.cursor', 'rules', 'agentic-crew.mdc')));
+    const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
+    assert.ok(manifest.supplementaryFiles?.includes('.cursor/rules/agentic-crew.mdc'));
   });
 
   it('startup preset uses professional theme and lean roster', () => {

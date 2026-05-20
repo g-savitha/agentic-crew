@@ -1,6 +1,6 @@
 # Manifest schema v1
 
-The file `.agentic-crew.json` is the contract between your project and the `agentic-crew` CLI. **Schema version 1 is stable** for the 0.7.x release line.
+The file `.agentic-crew.json` is the contract between your project and the `agentic-crew` CLI. **Schema version 1 is stable** for the 1.0.x release line.
 
 ## Required fields
 

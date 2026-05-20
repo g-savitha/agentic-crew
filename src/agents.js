@@ -395,17 +395,24 @@ function resolveActiveAgents(answers) {
 function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
   const conditional = resolveConditionalAgents(answers);
   const optional = resolveOptionalAgents(answers);
+  const themeOpts = answers.outputDir ? { cwd: answers.outputDir } : {};
   const customRoles = (answers.customRoles || []).map((r) =>
-    enrichAgent({
-      file: r.file,
-      role: r.name,
-      character: r.character,
-      command: theme === 'professional' ? undefined : r.command,
-      trait: r.trait,
-      why: r.description,
-      seniorBrief: r.seniorBrief || `You own ${r.name} end-to-end: ${r.description} Apply senior-level judgment, clear communication, and production-grade execution.`,
-      template: 'custom-role',
-    })
+    applyTheme(
+      enrichAgent({
+        file: r.file,
+        role: r.name,
+        character: r.character,
+        command: r.command,
+        trait: r.trait,
+        why: r.description,
+        seniorBrief:
+          r.seniorBrief ||
+          `You own ${r.name} end-to-end: ${r.description} Apply senior-level judgment, clear communication, and production-grade execution.`,
+        template: 'custom-role',
+      }),
+      theme,
+      themeOpts
+    )
   );
 
   const excludeFiles = answers.presetExcludeFiles || null;
@@ -413,7 +420,6 @@ function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
     ? DEFAULT_AGENTS.filter((a) => !excludeFiles.has(a.file))
     : DEFAULT_AGENTS;
 
-  const themeOpts = answers.outputDir ? { cwd: answers.outputDir } : {};
   const core = [...defaultAgents, ...conditional, ...optional]
     .map((a) => applyTheme(a, theme, themeOpts))
     .map(enrichAgent);

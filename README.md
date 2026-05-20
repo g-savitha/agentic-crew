@@ -175,7 +175,7 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--dir` | Project directory (default `.`) |
 | `--fix` | Repair missing scaffold files |
 | `--prune` | With `--fix`, remove files no longer in the manifest roster |
-| `--strict` | Treat heartbeat/message protocol warnings as errors |
+| `--strict` | Treat heartbeat, message, runbook, and security-CI warnings as errors |
 | `--json` | Machine-readable JSON output |
 
 ### `uninstall` options
@@ -273,7 +273,7 @@ Use `/team <agent> <task>` to route to any specialist, `/lumos` (Phoenix theme) 
 
 - **No orchestrator** — agents do not run automatically; you (the CEO) invoke slash commands in your IDE.
 - **`/team` is a convention** — the router skill tells the model to read another agent's skill file; it does not spawn separate agent processes.
-- **Protocol is voluntary** — models may skip reading `.agent/` unless you enforce it in your workflow; use `doctor --strict` to catch drift.
+- **Protocol is voluntary** — models may skip reading `.agent/` unless you enforce it in your workflow; use `doctor --strict` to catch heartbeat, message, runbook, and security-CI drift.
 - **File conflicts** — concurrent edits to the same `.agent/` file are not merged; coordinate via append-only messages.
 
 ### 5-minute walkthrough
