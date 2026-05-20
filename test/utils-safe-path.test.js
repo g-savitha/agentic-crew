@@ -14,8 +14,24 @@ describe('resolveSafeOutputDir', () => {
     assert.throws(() => resolveSafeOutputDir('../../etc', cwd), /must stay within/);
   });
 
-  it('allows absolute output directories', () => {
-    const abs = path.resolve('/tmp/agentic-crew-abs');
-    assert.equal(resolveSafeOutputDir(abs), abs);
+  it('allows absolute paths inside cwd', () => {
+    const cwd = path.resolve('/tmp/agentic-crew-safe');
+    const sub = path.join(cwd, 'nested');
+    assert.equal(resolveSafeOutputDir(sub, cwd), sub);
+  });
+
+  it('allows absolute paths under system temp', () => {
+    const cwd = path.resolve('/tmp/agentic-crew-safe');
+    const os = require('os');
+    const inTmp = path.join(os.tmpdir(), 'agentic-crew-test-out');
+    assert.equal(resolveSafeOutputDir(inTmp, cwd), inTmp);
+  });
+
+  it('rejects absolute paths outside cwd and temp', () => {
+    const cwd = path.resolve('/tmp/agentic-crew-safe');
+    assert.throws(
+      () => resolveSafeOutputDir('/etc', cwd),
+      /Absolute --output-dir must stay within/
+    );
   });
 });

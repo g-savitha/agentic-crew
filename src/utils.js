@@ -1,4 +1,5 @@
 const path = require('path');
+const os = require('os');
 const targetUtils = require('./targets');
 const {
   normalizeCommandTargets,
@@ -87,7 +88,17 @@ function assertNoCollision(reserved, file, command, label) {
 }
 
 /**
- * Resolve output directory and ensure it stays within cwd (prevents path traversal).
+ * @param {string} resolved
+ * @param {string} base
+ * @returns {boolean}
+ */
+function isPathInside(resolved, base) {
+  const rel = path.relative(path.resolve(base), path.resolve(resolved));
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
+/**
+ * Resolve output directory and ensure it stays within cwd or the OS temp dir.
  * @param {string} outputDir
  * @param {string} [cwd]
  * @returns {string}
@@ -95,16 +106,16 @@ function assertNoCollision(reserved, file, command, label) {
 function resolveSafeOutputDir(outputDir, cwd = process.cwd()) {
   const raw = (outputDir || '.').trim() || '.';
   const base = path.resolve(cwd);
+  const tmpBase = path.resolve(os.tmpdir());
 
   if (path.isAbsolute(raw)) {
     const resolved = path.resolve(raw);
-    const rel = path.relative(base, resolved);
-    if (rel.startsWith('..') || path.isAbsolute(rel)) {
-      process.stderr.write(
-        `Warning: --output-dir is outside the current working directory (${base}).\n`
-      );
+    if (isPathInside(resolved, base) || isPathInside(resolved, tmpBase)) {
+      return resolved;
     }
-    return resolved;
+    throw new Error(
+      `Absolute --output-dir must stay within the current working directory (${base}) or system temp (${tmpBase}). Got: ${outputDir}`
+    );
   }
 
   const resolved = path.resolve(base, raw);
@@ -144,6 +155,7 @@ module.exports = {
   normalizeTargets,
   normalizeDomains,
   assertNoCollision,
+  isPathInside,
   resolveSafeOutputDir,
   resolveSafeProjectDir,
   relativeCommandPath,

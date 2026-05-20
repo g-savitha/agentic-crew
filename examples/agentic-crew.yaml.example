@@ -28,5 +28,8 @@ theme: professional
 # withSecurityCi: true
 # withGitignore: true
 
+# Non-interactive init (omit to use the questionnaire):
+# yes: true
+
 # customRoles:
 #   - "Data Engineer|Owns ETL pipelines and warehouse schema"

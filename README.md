@@ -126,7 +126,7 @@ theme: professional
 withSecurityCi: true
 ```
 
-Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the output directory. CLI flags override config values. Use `--yes --name <name>` (or `--name` from config with `--yes`) for non-interactive init; a config file alone does not skip the questionnaire.
+Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the output directory. CLI flags override config values. Non-interactive init requires `--yes` plus `--name` (or `yes: true` and `name` in config). A config file with only `name:` does **not** skip the questionnaire.
 
 ### `init` options
 

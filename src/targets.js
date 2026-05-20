@@ -90,7 +90,7 @@ function resolveCommandDirs(commandTargets, outputDir) {
  * @returns {{ agentsMd: string | null, cursorRule: string | null }}
  */
 function resolveSupplementaryPaths(targets, outputDir) {
-  const commandTargets = normalizeCommandTargets(targets);
+  const commandTargets = normalizeCommandTargets(targets, { strict: true });
   return {
     agentsMd: shouldGenerateAgentsMd(targets) ? path.join(outputDir, 'AGENTS.md') : null,
     cursorRule: commandTargets.includes('cursor')
@@ -108,7 +108,7 @@ function serializeTargets(targets) {
   const raw = Array.isArray(targets) ? targets.join(',') : String(targets || 'both');
   const lower = raw.trim().toLowerCase();
   if (lower === 'both' || lower === 'all') return lower;
-  return normalizeCommandTargets(targets);
+  return normalizeCommandTargets(targets, { strict: true });
 }
 
 module.exports = {

@@ -14,6 +14,7 @@ const {
 } = require('./constants');
 const { IDE_TARGETS } = require('./targets');
 const { migrateManifest, buildManifest, validateManifestStructure, SCHEMA_VERSION } = require('./manifest');
+const { validateManifestSchema } = require('./manifest-schema-validator');
 const { pruneStaleFiles } = require('./prune');
 const { PRESETS, PRESET_KEYS, resolvePreset, applyPresetFilter } = require('./presets');
 const { loadProjectConfig, mergeConfigWithOptions, configExampleYaml } = require('./config');
@@ -39,6 +40,7 @@ module.exports = {
   migrateManifest,
   buildManifest,
   validateManifestStructure,
+  validateManifestSchema,
   pruneStaleFiles,
   resolvePreset,
   applyPresetFilter,

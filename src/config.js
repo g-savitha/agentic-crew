@@ -136,8 +136,10 @@ function normalizeConfig(raw) {
 
   const withSecurityCi = raw.withSecurityCi ?? raw.with_security_ci;
   const withGitignore = raw.withGitignore ?? raw.with_gitignore;
+  const yes = raw.yes ?? raw.nonInteractive;
 
   return {
+    yes: yes === true || yes === 'true',
     name: raw.name != null ? String(raw.name) : undefined,
     description: raw.description != null ? String(raw.description) : undefined,
     repo: raw.repo != null ? String(raw.repo) : undefined,
@@ -177,6 +179,7 @@ function mergeConfigWithOptions(config, opts) {
   if (!config) return null;
 
   const merged = {
+    yes: Boolean(opts.yes || config.yes),
     name: opts.name || config.name,
     description: opts.description ?? config.description ?? '',
     repo: opts.repo ?? config.repo ?? '',
@@ -228,6 +231,9 @@ function configExampleYaml(answers) {
   }
   if (answers.withSecurityCi) lines.push('withSecurityCi: true');
   if (answers.withGitignore) lines.push('withGitignore: true');
+  lines.push('');
+  lines.push('# Non-interactive init (config alone does not skip the questionnaire):');
+  lines.push('# yes: true');
   return lines.join('\n') + '\n';
 }
 
