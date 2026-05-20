@@ -67,6 +67,32 @@ async function runUninstall(projectDir = '.', options = {}) {
   await removeTarget(path.join(root, '.agentic-crew.yaml'));
   await removeTarget(manifestPath);
 
+  const docsPaths = [
+    path.join(root, 'docs', 'wiki', '11-troubleshooting.md'),
+    path.join(root, 'docs', 'adr', 'template.md'),
+    path.join(root, 'docs', 'runbooks', '.gitkeep'),
+    path.join(root, '.agent', 'README.md'),
+  ];
+  for (const docPath of docsPaths) {
+    await removeTarget(docPath);
+  }
+  for (const sub of ['wiki', 'adr', 'runbooks']) {
+    const dir = path.join(root, 'docs', sub);
+    if (await fs.pathExists(dir)) {
+      const entries = await fs.readdir(dir);
+      if (entries.length === 0) {
+        await removeTarget(dir);
+      }
+    }
+  }
+  const docsDir = path.join(root, 'docs');
+  if (await fs.pathExists(docsDir)) {
+    const entries = await fs.readdir(docsDir);
+    if (entries.length === 0) {
+      await removeTarget(docsDir);
+    }
+  }
+
   if (manifest.withSecurityCi) {
     await removeTarget(path.join(root, '.github', 'workflows', 'security.yml'));
   }

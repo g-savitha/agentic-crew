@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs-extra');
+const { sanitizeUserText, MAX_PROJECT_NAME, MAX_DESCRIPTION } = require('./sanitize');
 
 const CONFIG_CANDIDATES = [
   '.agentic-crew.yaml',
@@ -10,16 +11,44 @@ const CONFIG_CANDIDATES = [
 ];
 
 /**
+ * Escape a string for use as a double-quoted YAML scalar.
+ * @param {string} value
+ * @returns {string}
+ */
+function quoteYamlString(value) {
+  const safe = String(value ?? '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n');
+  return `"${safe}"`;
+}
+
+/**
  * Parse YAML using a minimal subset parser (no external dependency).
- * Supports flat key: value and simple lists.
+ * Supports flat key: value and simple lists only (no nesting).
  * @param {string} text
  * @returns {Record<string, unknown>}
  */
 function parseSimpleYaml(text) {
   const result = {};
   let currentKey = null;
+  const lines = text.split('\n');
 
-  for (const line of text.split('\n')) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s+/.test(line) && !/^\s+-\s/.test(line)) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        throw new Error(
+          `Nested YAML is not supported (line ${i + 1}: "${trimmed.slice(0, 40)}"). Use flat keys and list items only.`
+        );
+      }
+    }
+  }
+
+  for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
 
@@ -55,7 +84,8 @@ function stripQuotes(value) {
     (value.startsWith('"') && value.endsWith('"')) ||
     (value.startsWith("'") && value.endsWith("'"))
   ) {
-    return value.slice(1, -1);
+    const inner = value.slice(1, -1);
+    return inner.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
   }
   return value;
 }
@@ -104,6 +134,9 @@ function normalizeConfig(raw) {
   let customRoles = raw.customRoles || raw.custom_roles || [];
   if (typeof customRoles === 'string') customRoles = [customRoles];
 
+  const withSecurityCi = raw.withSecurityCi ?? raw.with_security_ci;
+  const withGitignore = raw.withGitignore ?? raw.with_gitignore;
+
   return {
     name: raw.name != null ? String(raw.name) : undefined,
     description: raw.description != null ? String(raw.description) : undefined,
@@ -117,7 +150,8 @@ function normalizeConfig(raw) {
     theme: raw.theme != null ? String(raw.theme) : undefined,
     target: raw.target != null ? String(raw.target) : undefined,
     outputDir: raw.outputDir ?? raw.output_dir,
-    withSecurityCi: Boolean(raw.withSecurityCi ?? raw.with_security_ci),
+    withSecurityCi: withSecurityCi === true || withSecurityCi === 'true',
+    withGitignore: withGitignore === true || withGitignore === 'true',
     customRoles,
   };
 }
@@ -156,6 +190,7 @@ function mergeConfigWithOptions(config, opts) {
     target: opts.target ?? config.target ?? 'both',
     outputDir: opts.outputDir ?? config.outputDir ?? '.',
     withSecurityCi: opts.withSecurityCi ?? config.withSecurityCi ?? false,
+    withGitignore: opts.withGitignore ?? config.withGitignore ?? false,
     customRole: [
       ...(Array.isArray(opts.customRole) ? opts.customRole : []),
       ...(Array.isArray(config.customRoles) ? config.customRoles : []),
@@ -170,10 +205,15 @@ function mergeConfigWithOptions(config, opts) {
  * @returns {string}
  */
 function configExampleYaml(answers) {
+  const name = sanitizeUserText(answers.projectName || 'my-app', MAX_PROJECT_NAME);
+  const description = sanitizeUserText(
+    answers.projectDescription || 'One-line description',
+    MAX_DESCRIPTION
+  );
   const lines = [
     '# agentic-crew project config — used by: agentic-crew init',
-    `name: ${answers.projectName || 'my-app'}`,
-    `description: ${answers.projectDescription || 'One-line description'}`,
+    `name: ${quoteYamlString(name)}`,
+    `description: ${quoteYamlString(description)}`,
     `frontend: ${answers.frontend || 'none'}`,
     `backend: ${answers.backend || 'none'}`,
     `target: ${answers.targets || 'both'}`,
@@ -182,9 +222,12 @@ function configExampleYaml(answers) {
   ];
   if (answers.domains?.length) {
     lines.push('domains:');
-    for (const d of answers.domains) lines.push(`  - ${d}`);
+    for (const d of answers.domains) {
+      lines.push(`  - ${quoteYamlString(sanitizeUserText(d, 80))}`);
+    }
   }
   if (answers.withSecurityCi) lines.push('withSecurityCi: true');
+  if (answers.withGitignore) lines.push('withGitignore: true');
   return lines.join('\n') + '\n';
 }
 
@@ -193,6 +236,8 @@ module.exports = {
   loadProjectConfig,
   mergeConfigWithOptions,
   parseConfigFile,
+  parseSimpleYaml,
   normalizeConfig,
   configExampleYaml,
+  quoteYamlString,
 };

@@ -7,7 +7,25 @@ const { scaffold } = require('../src/scaffolder');
 const { loadProjectConfig, mergeConfigWithOptions, parseConfigFile, configExampleYaml } = require('../src/config');
 const { normalizeCommandTargets, resolveCommandDirs, shouldGenerateAgentsMd } = require('../src/targets');
 const { resolvePreset } = require('../src/presets');
+const { resolveAllAgents } = require('../src/agents');
+const { countAgents } = require('../src/utils');
 const { getThemePack } = require('../src/themes');
+
+/** @type {boolean | undefined} */
+let canWriteCursorDir;
+
+async function detectCursorWriteAccess() {
+  if (canWriteCursorDir !== undefined) return canWriteCursorDir;
+  const probe = path.join(os.tmpdir(), `ac-cursor-probe-${process.pid}`);
+  try {
+    await fs.ensureDir(path.join(probe, '.cursor', 'commands'));
+    await fs.remove(probe);
+    canWriteCursorDir = true;
+  } catch {
+    canWriteCursorDir = false;
+  }
+  return canWriteCursorDir;
+}
 
 describe('config file support', () => {
   it('loads JSON config and merges with CLI overrides', async () => {
@@ -50,8 +68,8 @@ describe('config file support', () => {
       preset: 'full',
       domains: ['ml'],
     });
-    assert.match(yaml, /name: demo/);
-    assert.match(yaml, /- ml/);
+    assert.match(yaml, /name: "demo"/);
+    assert.match(yaml, /- "ml"/);
   });
 });
 
@@ -71,7 +89,10 @@ describe('IDE targets', () => {
     assert.equal(shouldGenerateAgentsMd('all'), true);
   });
 
-  it('scaffolds team router, AGENTS.md, and cursor rule', async () => {
+  it('scaffolds team router, AGENTS.md, and cursor rule', async (t) => {
+    if (!(await detectCursorWriteAccess())) {
+      t.skip('Cannot create .cursor/ in this environment (sandbox EPERM)');
+    }
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-targets-'));
     await scaffold(
       {
@@ -105,6 +126,28 @@ describe('IDE targets', () => {
     const preset = resolvePreset('startup');
     assert.equal(preset.theme, 'professional');
     assert.ok(preset.excludeFiles.has('documentation'));
+  });
+
+  it('resolveAllAgents applies preset exclusions before stack agents', () => {
+    const preset = resolvePreset('startup');
+    const agents = resolveAllAgents(
+      {
+        frontend: 'react',
+        backend: 'nodejs',
+        domains: [],
+        optionalRoles: [],
+        customRoles: [],
+        preset: preset.key,
+        presetExcludeFiles: preset.excludeFiles,
+        theme: 'professional',
+      },
+      'professional'
+    );
+    assert.equal(countAgents(agents), 10);
+    assert.ok(!agents.some((a) => a.file === 'marketing'));
+    assert.ok(!agents.some((a) => a.file === 'documentation'));
+    assert.ok(agents.some((a) => a.file === 'frontend'));
+    assert.ok(agents.some((a) => a.file === 'backend'));
   });
 
   it('theme pack provides catalog and start command', () => {

@@ -26,6 +26,7 @@ theme: professional
 #   - tpm
 
 # withSecurityCi: true
+# withGitignore: true
 
 # customRoles:
 #   - "Data Engineer|Owns ETL pipelines and warehouse schema"

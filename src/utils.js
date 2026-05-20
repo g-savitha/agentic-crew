@@ -47,7 +47,7 @@ function countCommandFiles(agents) {
  * @returns {import('./targets').CommandTarget[]}
  */
 function normalizeTargets(targets) {
-  return normalizeCommandTargets(targets);
+  return normalizeCommandTargets(targets, { strict: true });
 }
 
 /**
@@ -56,7 +56,7 @@ function normalizeTargets(targets) {
  * @returns {string[]}
  */
 function resolveCommandDirs(targets, outputDir) {
-  return resolveTargetCommandDirs(normalizeCommandTargets(targets), outputDir);
+  return resolveTargetCommandDirs(normalizeCommandTargets(targets, { strict: true }), outputDir);
 }
 
 /**
@@ -97,7 +97,14 @@ function resolveSafeOutputDir(outputDir, cwd = process.cwd()) {
   const base = path.resolve(cwd);
 
   if (path.isAbsolute(raw)) {
-    return path.resolve(raw);
+    const resolved = path.resolve(raw);
+    const rel = path.relative(base, resolved);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+      process.stderr.write(
+        `Warning: --output-dir is outside the current working directory (${base}).\n`
+      );
+    }
+    return resolved;
   }
 
   const resolved = path.resolve(base, raw);

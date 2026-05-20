@@ -61,10 +61,6 @@ async function resolveInitAnswers(cmd) {
     startDir: opts.outputDir || '.',
   });
   const merged = mergeConfigWithOptions(config, opts) || opts;
-  if (config?.name && !opts.yes && !opts.name) {
-    merged.yes = true;
-    merged.name = merged.name || config.name;
-  }
 
   let answers = answersFromOptions(merged);
   if (!answers) {
