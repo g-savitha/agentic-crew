@@ -25,6 +25,8 @@ const {
 const OPTIONAL_FILES = new Set(Object.values(OPTIONAL_AGENTS).map((a) => a.file));
 const { resolveStack } = require('./stacks');
 const { PACKAGE_VERSION, MANIFEST_FILENAME, catalogCommandForTheme } = require('./constants');
+const { buildManifest } = require('./manifest');
+const { pruneStaleFiles } = require('./prune');
 const {
   countAgents,
   countCommandFiles,
@@ -56,7 +58,7 @@ function loadTemplate(relativePath) {
 
 /**
  * @param {object} answers
- * @param {{ dryRun?: boolean, force?: boolean, forceOverwrite?: boolean, backup?: boolean, isUpdate?: boolean, withSecurityCi?: boolean }} [options]
+ * @param {{ dryRun?: boolean, force?: boolean, forceOverwrite?: boolean, backup?: boolean, isUpdate?: boolean, withSecurityCi?: boolean, prune?: boolean, quiet?: boolean }} [options]
  */
 async function scaffold(answers, options = {}) {
   const {
@@ -66,7 +68,11 @@ async function scaffold(answers, options = {}) {
     backup = false,
     isUpdate = false,
     withSecurityCi = false,
+    prune = false,
+    quiet = false,
   } = options;
+  const allowExisting = force || isUpdate;
+  const overwriteGeneratedDocs = force;
   const scaffoldSecurityCi = withSecurityCi || Boolean(answers.withSecurityCi);
   const outputDir = resolveSafeOutputDir(answers.outputDir || '.');
   const theme = answers.theme || 'phoenix';
@@ -126,7 +132,7 @@ async function scaffold(answers, options = {}) {
   };
   const skippedFiles = [];
 
-  if (!dryRun && !force) {
+  if (!dryRun && !allowExisting) {
     const exists = await fs.pathExists(agentDir);
     if (exists) {
       throw new Error(
@@ -144,6 +150,16 @@ async function scaffold(answers, options = {}) {
   };
 
   if (dryRun) {
+    const pruned = prune
+      ? await pruneStaleFiles({
+          outputDir,
+          commandDirs,
+          allAgents,
+          theme,
+          agentDir,
+          dryRun: true,
+        })
+      : [];
     return {
       dryRun: true,
       planned: { ...planned, outputDir },
@@ -153,6 +169,7 @@ async function scaffold(answers, options = {}) {
       commandDirs,
       agentCount: countAgents(allAgents),
       theme,
+      pruned,
     };
   }
 
@@ -222,12 +239,14 @@ async function scaffold(answers, options = {}) {
       }
 
       const relLabel = path.relative(outputDir, commandsDir).replace(/\\/g, '/');
-      const mark = written ? chalk.green('  ✓ ') : chalk.yellow('  ↷ ');
-      process.stdout.write(
-        mark +
-          chalk.dim(`${relLabel}/${agent.file}.md`) +
-          (written ? chalk.cyan(`  (${agent.character})\n`) : chalk.dim('  (preserved user edits)\n'))
-      );
+      if (!quiet) {
+        const mark = written ? chalk.green('  ✓ ') : chalk.yellow('  ↷ ');
+        process.stdout.write(
+          mark +
+            chalk.dim(`${relLabel}/${agent.file}.md`) +
+            (written ? chalk.cyan(`  (${agent.character})\n`) : chalk.dim('  (preserved user edits)\n'))
+        );
+      }
     }
 
     const setupTpl = loadTemplate('commands/setup.md.hbs');
@@ -278,7 +297,7 @@ async function scaffold(answers, options = {}) {
 
   const tasksTpl = loadTemplate('agent/tasks.md.hbs');
   const tasksPath = path.join(backlogDir, 'tasks.md');
-  if (!(await fs.pathExists(tasksPath)) || force) {
+  if (!(await fs.pathExists(tasksPath)) || overwriteGeneratedDocs) {
     await fs.writeFile(tasksPath, tasksTpl(baseContext));
   }
 
@@ -291,24 +310,36 @@ async function scaffold(answers, options = {}) {
 
   const troubleshootingTpl = loadTemplate('docs/troubleshooting.md.hbs');
   const wikiPath = path.join(docsWikiDir, '11-troubleshooting.md');
-  if (!(await fs.pathExists(wikiPath)) || force) {
+  if (!(await fs.pathExists(wikiPath)) || overwriteGeneratedDocs) {
     await fs.writeFile(wikiPath, troubleshootingTpl(baseContext));
   }
 
   const adrTpl = loadTemplate('docs/adr-template.md.hbs');
   const adrPath = path.join(docsAdrDir, 'template.md');
-  if (!(await fs.pathExists(adrPath)) || force) {
+  if (!(await fs.pathExists(adrPath)) || overwriteGeneratedDocs) {
     await fs.writeFile(adrPath, adrTpl(baseContext));
   }
 
   await fs.writeFile(path.join(docsRunbooksDir, '.gitkeep'), '');
 
-  const manifest = {
-    packageVersion: PACKAGE_VERSION,
+  let pruned = [];
+  if (prune) {
+    pruned = await pruneStaleFiles({
+      outputDir,
+      commandDirs,
+      allAgents,
+      theme,
+      agentDir,
+      dryRun: false,
+    });
+  }
+
+  const manifest = buildManifest({
     scaffoldedAt: new Date().toISOString(),
     theme,
     catalogCommand: catalogCommandForTheme(theme),
     targets,
+    preset: answers.preset || 'full',
     project: {
       name: baseContext.projectName,
       description: baseContext.projectDescription,
@@ -337,7 +368,7 @@ async function scaffold(answers, options = {}) {
     commandDirs: baseContext.commandDirs,
     commandHashes,
     withSecurityCi: Boolean(scaffoldSecurityCi),
-  };
+  });
   await fs.writeJson(manifestPath, manifest, { spaces: 2 });
 
   if (scaffoldSecurityCi) {
@@ -345,13 +376,21 @@ async function scaffold(answers, options = {}) {
     await fs.ensureDir(workflowDir);
     const workflowPath = path.join(workflowDir, 'security.yml');
     await fs.writeFile(workflowPath, securityWorkflowYaml(sanitizedAnswers.backend));
-    console.log(chalk.green('  ✓ ') + chalk.dim('.github/workflows/security.yml'));
+    if (!quiet) {
+      console.log(chalk.green('  ✓ ') + chalk.dim('.github/workflows/security.yml'));
+    }
   }
 
-  if (skippedFiles.length > 0) {
+  if (!quiet && skippedFiles.length > 0) {
     console.log(
       chalk.yellow(`\n  ↷ Preserved ${skippedFiles.length} user-edited command file(s).`) +
         chalk.dim(' Use --force-overwrite to replace them.\n')
+    );
+  }
+
+  if (!quiet && pruned.length > 0) {
+    console.log(
+      chalk.dim(`\n  🧹 Removed ${pruned.length} stale file(s) no longer in the roster.\n`)
     );
   }
 
@@ -367,6 +406,7 @@ async function scaffold(answers, options = {}) {
     commandFileCount: countCommandFiles(allAgents),
     theme,
     skippedFiles,
+    pruned,
   };
 }
 

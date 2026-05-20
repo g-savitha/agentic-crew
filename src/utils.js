@@ -124,6 +124,17 @@ function resolveSafeOutputDir(outputDir, cwd = process.cwd()) {
 }
 
 /**
+ * Resolve a project directory for doctor/update/uninstall (must exist).
+ * @param {string} projectDir
+ * @param {string} [cwd]
+ * @returns {string}
+ */
+function resolveSafeProjectDir(projectDir, cwd = process.cwd()) {
+  const resolved = resolveSafeOutputDir(projectDir || '.', cwd);
+  return resolved;
+}
+
+/**
  * @param {string} filePath
  * @param {string} outputDir
  * @returns {string}
@@ -141,5 +152,6 @@ module.exports = {
   normalizeDomains,
   assertNoCollision,
   resolveSafeOutputDir,
+  resolveSafeProjectDir,
   relativeCommandPath,
 };

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/g-savitha/agentic-crew/schema/manifest.schema.json",
+  "title": "agentic-crew manifest",
+  "type": "object",
+  "required": ["schemaVersion", "packageVersion", "agents", "project", "commandDirs"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "packageVersion": { "type": "string" },
+    "scaffoldedAt": { "type": "string", "format": "date-time" },
+    "theme": { "enum": ["phoenix", "professional"] },
+    "catalogCommand": { "enum": ["lumos", "help"] },
+    "preset": { "enum": ["full", "minimal", "enterprise"] },
+    "targets": {
+      "oneOf": [
+        { "type": "array", "items": { "enum": ["claude", "cursor"] } },
+        { "type": "string" }
+      ]
+    },
+    "project": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "githubRepo": { "type": "string" }
+      }
+    },
+    "stacks": {
+      "type": "object",
+      "properties": {
+        "frontend": { "type": "string" },
+        "backend": { "type": "string" },
+        "domains": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "optionalRoles": { "type": "array", "items": { "type": "string" } },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["file", "role"],
+        "properties": {
+          "file": { "type": "string" },
+          "role": { "type": "string" },
+          "command": { "type": ["string", "null"] },
+          "character": { "type": "string" }
+        }
+      }
+    },
+    "customRoles": { "type": "array" },
+    "commandDirs": { "type": "array", "items": { "type": "string" } },
+    "commandHashes": { "type": "object", "additionalProperties": { "type": "string" } },
+    "withSecurityCi": { "type": "boolean" }
+  }
+}

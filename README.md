@@ -4,7 +4,7 @@
 
 ```bash
 # Pin the version — do not use bare `npx agentic-crew` in production (supply-chain risk)
-npx agentic-crew@latest init
+npx agentic-crew@0.3.0 init
 ```
 
 ---
@@ -21,17 +21,17 @@ You bring the ideas. The team executes.
 
 ```bash
 # Interactive (recommended) — pin version in scripts/CI
-npx agentic-crew@0.2.1 init
+npx agentic-crew@0.3.0 init
 
-# Non-interactive
-npx agentic-crew@0.2.1 init --yes \
+# Non-interactive — enterprise preset (professional theme, lean roster)
+npx agentic-crew@0.3.0 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
   --backend go \
   --domain ml,data \
   --target both \
-  --theme phoenix
+  --preset enterprise
 
 # Preview without writing files
 npx agentic-crew init --dry-run --yes --name demo --frontend react --backend nodejs
@@ -39,11 +39,20 @@ npx agentic-crew init --dry-run --yes --name demo --frontend react --backend nod
 # Validate an existing install
 npx agentic-crew doctor
 
-# Refresh command templates (preserves user-edited skill files)
-npx agentic-crew@0.2.1 update
+# Repair missing files and prune stale roster entries
+npx agentic-crew doctor --fix
+
+# Refresh command templates (preserves user-edited skill files and docs)
+npx agentic-crew@0.3.0 update
+
+# Preview update changes
+npx agentic-crew update --dry-run
 
 # Replace user-edited skill files with latest templates
-npx agentic-crew@0.2.1 update --force-overwrite
+npx agentic-crew@0.3.0 update --force-overwrite
+
+# Remove scaffold artifacts (keep .agent/ state)
+npx agentic-crew uninstall --keep-state
 ```
 
 ---
@@ -54,7 +63,20 @@ npx agentic-crew@0.2.1 update --force-overwrite
 |---------|-------------|
 | `agentic-crew init` | Scaffold the team (interactive or `--yes` with flags) |
 | `agentic-crew doctor` | Validate `.agent/`, manifest, and skill files |
+| `agentic-crew doctor --fix` | Repair missing files and prune stale roster entries |
 | `agentic-crew update` | Re-render skill templates (preserves user edits unless `--force-overwrite`) |
+| `agentic-crew update --dry-run` | Preview template refresh and stale file removal |
+| `agentic-crew uninstall` | Remove generated skill files and manifest |
+
+All commands support `--json` for scripting/CI.
+
+### Programmatic API
+
+```js
+const { scaffold, runDoctor, runUpdate, runUninstall, PACKAGE_VERSION } = require('agentic-crew');
+```
+
+Manifest JSON Schema: `require('agentic-crew/schema/manifest.schema.json')`
 
 ### `init` options
 
@@ -68,6 +90,7 @@ npx agentic-crew@0.2.1 update --force-overwrite
 | `--domain` | Comma-separated domains (`ml`, `data`, `networking`, …) |
 | `--domain-other` | Additional custom domain label |
 | `--optional` | Comma-separated optional roles: `sre`, `tpm` |
+| `--preset` | `full` (default), `minimal`, or `enterprise` |
 | `--theme` | `phoenix` (default) or `professional` |
 | `--target` | `claude`, `cursor`, or `both` (default) |
 | `--output-dir` | Directory to scaffold into (default `.`) |
@@ -77,6 +100,7 @@ npx agentic-crew@0.2.1 update --force-overwrite
 | `--custom-role` | `Name|Description` — repeatable custom role |
 | `--with-security-ci` | Add `.github/workflows/security.yml` to the target project |
 | `--yes` | Skip questionnaire (requires `--name`) |
+| `--json` | Machine-readable JSON output |
 
 ### `update` options
 
@@ -85,7 +109,26 @@ npx agentic-crew@0.2.1 update --force-overwrite
 | `--dir` | Project directory (default `.`) |
 | `--force` | Overwrite generated docs/backlog |
 | `--force-overwrite` | Replace user-edited command skill files |
-| `--backup` | Copy prior command files to `.agentic-crew.bak/` |
+| `--backup` | Copy prior command files to `.agentic-crew.bak/` before updating |
+| `--dry-run` | Preview changes without writing |
+| `--json` | Machine-readable JSON output |
+
+### `doctor` options
+
+| Flag | Description |
+|------|-------------|
+| `--dir` | Project directory (default `.`) |
+| `--fix` | Create missing files and prune stale roster entries |
+| `--json` | Machine-readable JSON output |
+
+### `uninstall` options
+
+| Flag | Description |
+|------|-------------|
+| `--dir` | Project directory (default `.`) |
+| `--keep-state` | Preserve `.agent/` (status, messages, backlog) |
+| `--dry-run` | Show what would be removed |
+| `--json` | Machine-readable JSON output |
 
 ---
 
@@ -139,7 +182,7 @@ With `--theme professional`, only role-based commands (e.g. `/manager`) are gene
 
 ```
 your-project/
-  .agentic-crew.json      ← manifest (version, agents, stacks, file hashes)
+  .agentic-crew.json      ← manifest (schemaVersion, agents, stacks, file hashes)
   .github/workflows/      ← optional security.yml (--with-security-ci)
   .claude/commands/       ← Claude Code skill files
   .cursor/commands/       ← Cursor skill files (when --target both)

@@ -1,16 +1,24 @@
 {
   "name": "agentic-crew",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Scaffold a full AI engineering team into any project — personas, wired and ready in 60 seconds.",
-  "main": "src/index.js",
+  "main": "src/api.js",
+  "exports": {
+    ".": "./src/api.js",
+    "./cli": "./src/index.js",
+    "./schema/manifest.schema.json": "./schema/manifest.schema.json"
+  },
   "bin": {
     "agentic-crew": "./bin/cli.js"
   },
   "files": [
     "bin/",
     "src/",
+    "schema/",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "scripts": {
     "test": "node --test test/**/*.test.js",
@@ -25,11 +33,18 @@
     "agentic",
     "engineering-team",
     "cursor",
-    "claude",
-    "codex"
+    "claude"
   ],
   "author": "Savitha Gollamudi",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g-savitha/agentic-crew.git"
+  },
+  "bugs": {
+    "url": "https://github.com/g-savitha/agentic-crew/issues"
+  },
+  "homepage": "https://github.com/g-savitha/agentic-crew#readme",
   "engines": {
     "node": ">=18.0.0"
   },

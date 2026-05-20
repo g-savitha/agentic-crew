@@ -320,6 +320,7 @@ function resolveConditionalAgents(answers) {
   }
 
   const seenFiles = new Set();
+  const customDomainLabels = [];
   for (const domain of domains) {
     if (KNOWN_DOMAIN_KEYS.has(domain)) {
       const domainAgent = CONDITIONAL_AGENTS.domain[domain];
@@ -328,15 +329,16 @@ function resolveConditionalAgents(answers) {
         seenFiles.add(domainAgent.file);
       }
     } else if (domain && domain !== 'none') {
-      if (!seenFiles.has(CUSTOM_DOMAIN_AGENT.file)) {
-        active.push({
-          ...CUSTOM_DOMAIN_AGENT,
-          domainKey: 'custom',
-          customDomainLabel: domain,
-        });
-        seenFiles.add(CUSTOM_DOMAIN_AGENT.file);
-      }
+      customDomainLabels.push(domain);
     }
+  }
+  if (customDomainLabels.length > 0 && !seenFiles.has(CUSTOM_DOMAIN_AGENT.file)) {
+    active.push({
+      ...CUSTOM_DOMAIN_AGENT,
+      domainKey: 'custom',
+      customDomainLabel: customDomainLabels.join('; '),
+    });
+    seenFiles.add(CUSTOM_DOMAIN_AGENT.file);
   }
 
   return active;
@@ -387,7 +389,12 @@ function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
     })
   );
 
-  const core = [...DEFAULT_AGENTS, ...conditional, ...optional]
+  const excludeFiles = answers.presetExcludeFiles || null;
+  const defaultAgents = excludeFiles
+    ? DEFAULT_AGENTS.filter((a) => !excludeFiles.has(a.file))
+    : DEFAULT_AGENTS;
+
+  const core = [...defaultAgents, ...conditional, ...optional]
     .map((a) => applyTheme(a, theme))
     .map(enrichAgent);
   return [...core, ...customRoles];

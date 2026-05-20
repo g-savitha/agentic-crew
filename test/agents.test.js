@@ -203,6 +203,7 @@ describe('scaffold dry-run and doctor', () => {
     const manifest = await fs.readJson(path.join(tmp, '.agentic-crew.json'));
     assert.ok(manifest.commandHashes);
     assert.ok(manifest.commandHashes['.claude/commands/manager.md']);
+    assert.equal(manifest.schemaVersion, 1);
   });
 
   it('update preserves user-edited command files', async () => {
