@@ -1,0 +1,8 @@
+name: hello-team
+description: Minimal example app scaffolded with agentic-crew
+frontend: react
+backend: nodejs
+target: cursor
+preset: startup
+theme: professional
+yes: true

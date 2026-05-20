@@ -99,6 +99,7 @@ async function runUninstall(projectDir = '.', options = {}) {
     path.join(root, 'docs', 'wiki', '11-troubleshooting.md'),
     path.join(root, 'docs', 'adr', 'template.md'),
     path.join(root, 'docs', 'runbooks', '.gitkeep'),
+    ...['release.md', 'on-call.md', 'incident.md'].map((f) => path.join(root, 'docs', 'runbooks', f)),
     path.join(root, '.agent', 'README.md'),
   ];
   for (const docPath of docsPaths) {

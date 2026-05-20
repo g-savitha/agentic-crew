@@ -188,7 +188,7 @@ function mergeConfigWithOptions(config, opts) {
     domain: opts.domain ?? (config.domains?.length ? config.domains.join(',') : undefined),
     domainOther: opts.domainOther ?? config.domainOther,
     optional: opts.optional ?? config.optional,
-    preset: opts.preset ?? config.preset ?? 'full',
+    preset: opts.preset ?? config.preset ?? 'startup',
     theme: opts.theme ?? config.theme,
     target: opts.target ?? config.target ?? 'both',
     outputDir: opts.outputDir ?? config.outputDir ?? '.',
@@ -221,7 +221,7 @@ function configExampleYaml(answers) {
     `backend: ${answers.backend || 'none'}`,
     `target: ${answers.targets || 'both'}`,
     `theme: ${answers.theme || 'phoenix'}`,
-    `preset: ${answers.preset || 'full'}`,
+    `preset: ${answers.preset || 'startup'}`,
   ];
   if (answers.domains?.length) {
     lines.push('domains:');

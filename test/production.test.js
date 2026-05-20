@@ -20,6 +20,8 @@ describe('production hardening', () => {
     assert.equal(typeof api.runDoctor, 'function');
     assert.equal(typeof api.runUpdate, 'function');
     assert.equal(typeof api.runUninstall, 'function');
+    assert.equal(typeof api.validateHeartbeatContent, 'function');
+    assert.equal(typeof api.writeStarterRunbooks, 'function');
     assert.equal(api.SCHEMA_VERSION, SCHEMA_VERSION);
   });
 

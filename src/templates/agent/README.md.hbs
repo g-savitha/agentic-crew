@@ -46,6 +46,7 @@ The human running this project is the **CEO**. They set direction and vision. Al
 
 - Never delete message history — append only
 - Status files are overwritten on each invocation (they reflect current state, not history)
-- Reports are append-only; use dated sections in `reports/heartbeat.md`
+- **`heartbeat.md`** is overwritten on each manager check-in (current team snapshot)
+- Other files under `reports/` may use append-only dated sections (e.g. `retro.md`, perf baselines)
 - Backlog is the single source of truth for work items
 - Team roster and scaffold metadata live in `.agentic-crew.json` at the project root

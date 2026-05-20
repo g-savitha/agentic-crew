@@ -295,9 +295,9 @@ const KNOWN_DOMAIN_KEYS = new Set(Object.keys(CONDITIONAL_AGENTS.domain));
  * @param {'phoenix' | 'professional'} theme
  * @returns {AgentDefinition}
  */
-function applyTheme(agent, theme) {
+function applyTheme(agent, theme, options = {}) {
   try {
-    const loaded = loadThemePack(theme);
+    const loaded = loadThemePack(theme, options);
     const override = loaded.getAgentOverride(agent.file);
     const base = override ? { ...agent, ...override } : agent;
     return loaded.apply(base);
@@ -413,8 +413,9 @@ function resolveAllAgents(answers, theme = answers.theme || 'phoenix') {
     ? DEFAULT_AGENTS.filter((a) => !excludeFiles.has(a.file))
     : DEFAULT_AGENTS;
 
+  const themeOpts = answers.outputDir ? { cwd: answers.outputDir } : {};
   const core = [...defaultAgents, ...conditional, ...optional]
-    .map((a) => applyTheme(a, theme))
+    .map((a) => applyTheme(a, theme, themeOpts))
     .map(enrichAgent);
   return [...core, ...customRoles];
 }

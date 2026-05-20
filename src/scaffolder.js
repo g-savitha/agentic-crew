@@ -37,6 +37,8 @@ const {
 } = require('./utils');
 const { writeSupplementaryOutputs, writeTeamRouter } = require('./supplementary');
 const { getThemePack } = require('./themes');
+const { resolveThemePack, catalogCommandForThemeId } = require('./theme-loader');
+const { writeStarterRunbooks } = require('./runbooks');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const templateCache = new Map();
@@ -105,8 +107,12 @@ async function scaffold(answers, options = {}) {
   const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
   const allAgents = resolveAllAgents(sanitizedAnswers, theme);
   const sanitizedCustomRoles = sanitizedAnswers.customRoles;
+  const themePack = resolveThemePack(theme, { cwd: outputDir });
+  const catalogCommand = themePack.catalogCommand;
+  const themeOpts = { cwd: outputDir };
 
   const baseContext = {
+    outputDir,
     projectName: sanitizedAnswers.projectName,
     projectDescription: sanitizedAnswers.projectDescription,
     githubRepo: sanitizedAnswers.githubRepo,
@@ -117,7 +123,8 @@ async function scaffold(answers, options = {}) {
     hasBackend: stack.hasBackend,
     hasDomain: stack.hasDomain,
     theme,
-    isProfessional: theme === 'professional',
+    themePack,
+    isProfessional: !themePack.useCharacterAliases,
     teamAgents: allAgents,
     allAgents,
     commandDirs: commandDirs.map((d) => path.relative(outputDir, d).replace(/\\/g, '/')),
@@ -161,6 +168,7 @@ async function scaffold(answers, options = {}) {
           commandDirs,
           allAgents,
           theme,
+          catalogCommand,
           agentDir,
           dryRun: true,
         })
@@ -261,13 +269,13 @@ async function scaffold(answers, options = {}) {
       ...writerParams,
     });
 
-    const catalogCmd = catalogCommandForTheme(theme);
+    const catalogCmd = catalogCommand;
     const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
     const catalogCtx = {
       ...baseContext,
-      defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
-      conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
-      optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
+      defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme, themeOpts)),
+      conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
+      optionalAgents: optionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
       customRoles: sanitizedCustomRoles,
       hasConditionalAgents: conditionalAgents.length > 0,
       hasOptionalAgents: optionalAgents.length > 0,
@@ -346,7 +354,15 @@ async function scaffold(answers, options = {}) {
     await fs.writeFile(adrPath, adrTpl(baseContext));
   }
 
-  await fs.writeFile(path.join(docsRunbooksDir, '.gitkeep'), '');
+  const runbooksWritten = await writeStarterRunbooks({
+    runbooksDir: docsRunbooksDir,
+    loadTemplate,
+    baseContext,
+    overwrite: overwriteGeneratedDocs,
+  });
+  if (!runbooksWritten.length && !(await fs.pathExists(path.join(docsRunbooksDir, 'release.md')))) {
+    await fs.writeFile(path.join(docsRunbooksDir, '.gitkeep'), '');
+  }
 
   let pruned = [];
   if (prune) {
@@ -355,6 +371,7 @@ async function scaffold(answers, options = {}) {
       commandDirs,
       allAgents,
       theme,
+      catalogCommand,
       agentDir,
       dryRun: false,
     });
@@ -363,9 +380,9 @@ async function scaffold(answers, options = {}) {
   const manifest = buildManifest({
     scaffoldedAt: new Date().toISOString(),
     theme,
-    catalogCommand: catalogCommandForTheme(theme),
+    catalogCommand,
     targets,
-    preset: answers.preset || 'full',
+    preset: answers.preset || 'startup',
     project: {
       name: baseContext.projectName,
       description: baseContext.projectDescription,
@@ -442,7 +459,8 @@ function printManifest(answers, result) {
   const { allAgents, commandDirs, agentCount } = result;
   const theme = result.theme ?? answers.theme ?? 'phoenix';
   const customRoles = answers.customRoles || [];
-  const isProfessional = theme === 'professional';
+  const themePack = resolveThemePack(theme, { cwd: result.outputDir });
+  const isProfessional = !themePack.useCharacterAliases;
 
   const defaultFiles = new Set(DEFAULT_AGENTS.map((a) => a.file));
   const customFiles = new Set(customRoles.map((r) => r.file));
@@ -493,7 +511,7 @@ function printManifest(answers, result) {
       chalk.dim(`Agents: ${agentCount} · Command dirs: `) +
       commandDirs.map((d) => chalk.white(path.relative(result.outputDir, d))).join(chalk.dim(', '))
   );
-  const catalogSlash = `/${catalogCommandForTheme(theme)}`;
+  const catalogSlash = `/${catalogCommandForTheme(theme, { cwd: result.outputDir })}`;
   console.log(
     '\n  ' +
       chalk.dim('Utilities: ') +
@@ -504,7 +522,7 @@ function printManifest(answers, result) {
       chalk.white(catalogSlash) +
       chalk.dim(' — show all commands')
   );
-  const startCmd = `/${getThemePack(theme).startCommand}`;
+  const startCmd = `/${resolveThemePack(theme, { cwd: result.outputDir }).startCommand}`;
   console.log(
     '\n  ' +
       chalk.bold.yellow('✨ Ready.') +
@@ -578,8 +596,12 @@ async function previewCommandFiles(answers, options = {}) {
   const optionalAgents = resolveOptionalAgents(sanitizedAnswers);
   const allAgents = resolveAllAgents(sanitizedAnswers, theme);
   const sanitizedCustomRoles = sanitizedAnswers.customRoles;
+  const themePack = resolveThemePack(theme, { cwd: outputDir });
+  const catalogCommand = themePack.catalogCommand;
+  const themeOpts = { cwd: outputDir };
 
   const baseContext = {
+    outputDir,
     projectName: sanitizedAnswers.projectName,
     projectDescription: sanitizedAnswers.projectDescription,
     githubRepo: sanitizedAnswers.githubRepo,
@@ -590,7 +612,8 @@ async function previewCommandFiles(answers, options = {}) {
     hasBackend: stack.hasBackend,
     hasDomain: stack.hasDomain,
     theme,
-    isProfessional: theme === 'professional',
+    themePack,
+    isProfessional: !themePack.useCharacterAliases,
     teamAgents: allAgents,
     allAgents,
     commandDirs: commandDirs.map((d) => path.relative(outputDir, d).replace(/\\/g, '/')),
@@ -644,15 +667,15 @@ async function previewCommandFiles(answers, options = {}) {
       content: setupTpl({ ...baseContext, allAgents }),
     });
 
-    const catalogCmd = catalogCommandForTheme(theme);
+    const catalogCmd = catalogCommand;
     const catalogTpl = loadTemplate(`commands/${catalogCmd}.md.hbs`);
     files.push({
       rel: path.relative(outputDir, path.join(commandsDir, `${catalogCmd}.md`)).replace(/\\/g, '/'),
       content: catalogTpl({
         ...baseContext,
-        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme)),
-        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme)),
-        optionalAgents: optionalAgents.map((a) => applyTheme(a, theme)),
+        defaultAgents: DEFAULT_AGENTS.map((a) => applyTheme(a, theme, themeOpts)),
+        conditionalAgents: conditionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
+        optionalAgents: optionalAgents.map((a) => applyTheme(a, theme, themeOpts)),
         customRoles: sanitizedCustomRoles,
         hasConditionalAgents: conditionalAgents.length > 0,
         hasOptionalAgents: optionalAgents.length > 0,
@@ -665,8 +688,8 @@ async function previewCommandFiles(answers, options = {}) {
       rel: path.relative(outputDir, path.join(commandsDir, 'team.md')).replace(/\\/g, '/'),
       content: teamTpl({
         ...baseContext,
-        themePack: getThemePack(theme),
-        startAgent: getThemePack(theme).startCommand,
+        themePack,
+        startAgent: themePack.startCommand,
       }),
     });
   }

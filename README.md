@@ -4,7 +4,7 @@
 
 ```bash
 # Pin the version — do not use bare `npx agentic-crew` in production (supply-chain risk)
-npx agentic-crew@0.7.0 init
+npx agentic-crew@1.0.0 init
 ```
 
 ---
@@ -21,19 +21,19 @@ You bring the ideas. The team executes.
 
 ```bash
 # Interactive (recommended) — pin version in scripts/CI
-npx agentic-crew@0.7.0 init
+npx agentic-crew@1.0.0 init
 
 # Config-driven init (place .agentic-crew.yaml in project root)
 npx agentic-crew init --save-config   # writes example config after scaffold
 
 # All IDE targets + /team router
-npx agentic-crew@0.7.0 init --yes \
+npx agentic-crew@1.0.0 init --yes \
   --name "my-app" \
   --target all \
   --preset startup
 
 # Non-interactive — enterprise preset (professional theme, lean roster)
-npx agentic-crew@0.7.0 init --yes \
+npx agentic-crew@1.0.0 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
@@ -48,17 +48,17 @@ npx agentic-crew init --dry-run --yes --name demo --frontend react --backend nod
 # Validate an existing install
 npx agentic-crew doctor
 
-# Repair missing files and prune stale roster entries
+# Repair missing scaffold files
 npx agentic-crew doctor --fix
 
 # Refresh command templates (preserves user-edited skill files and docs)
-npx agentic-crew@0.7.0 update
+npx agentic-crew@1.0.0 update
 
 # Preview update changes
 npx agentic-crew update --dry-run
 
 # Replace user-edited skill files with latest templates
-npx agentic-crew@0.7.0 update --force-overwrite
+npx agentic-crew@1.0.0 update --force-overwrite
 
 # Remove scaffold artifacts (keep .agent/ state)
 npx agentic-crew uninstall --keep-state
@@ -72,7 +72,7 @@ npx agentic-crew uninstall --keep-state
 |---------|-------------|
 | `agentic-crew init` | Scaffold the team (interactive or `--yes` with flags) |
 | `agentic-crew doctor` | Validate `.agent/`, manifest, and skill files |
-| `agentic-crew doctor --fix` | Repair missing files and prune stale roster entries |
+| `agentic-crew doctor --fix` | Repair missing scaffold files (`--prune` to remove stale roster files) |
 | `agentic-crew update` | Re-render skill templates (preserves user edits unless `--force-overwrite`) |
 | `agentic-crew update --dry-run` | Preview template refresh and stale file removal |
 | `agentic-crew uninstall` | Remove generated skill files and manifest |
@@ -128,6 +128,8 @@ withSecurityCi: true
 
 Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the output directory. CLI flags override config values. Non-interactive init requires `--yes` plus `--name` (or `yes: true` and `name` in config). A config file with only `name:` does **not** skip the questionnaire.
 
+**YAML limitations**: the built-in parser supports **flat keys and simple lists only** (no nested objects). Use JSON config if you need richer structure.
+
 ### `init` options
 
 | Flag | Description |
@@ -140,7 +142,7 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--domain` | Comma-separated domains (`ml`, `data`, `networking`, …) |
 | `--domain-other` | Additional custom domain label |
 | `--optional` | Comma-separated optional roles: `sre`, `tpm` |
-| `--preset` | `full` (default), `minimal`, `enterprise`, or `startup` |
+| `--preset` | `startup` (default), `full`, `minimal`, or `enterprise` |
 | `--theme` | `phoenix` (default) or `professional` |
 | `--target` | `claude`, `cursor`, `codex`, `windsurf`, `both` (default), or `all` |
 | `--config` | Path to YAML/JSON config (auto-discovers `.agentic-crew.yaml`) |
@@ -171,7 +173,9 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | Flag | Description |
 |------|-------------|
 | `--dir` | Project directory (default `.`) |
-| `--fix` | Create missing files and prune stale roster entries |
+| `--fix` | Repair missing scaffold files |
+| `--prune` | With `--fix`, remove files no longer in the manifest roster |
+| `--strict` | Treat heartbeat/message protocol warnings as errors |
 | `--json` | Machine-readable JSON output |
 
 ### `uninstall` options
@@ -252,7 +256,7 @@ your-project/
   docs/
     wiki/11-troubleshooting.md
     adr/template.md
-    runbooks/
+    runbooks/             ← release.md, on-call.md, incident.md (starters)
 ```
 
 Character commands (e.g. `/dumbledore`) are **alias stubs** that point to the canonical role file (e.g. `manager.md`) so updates stay in one place.
@@ -264,6 +268,23 @@ Character commands (e.g. `/dumbledore`) are **alias stubs** that point to the ca
 Agents communicate by reading and writing files in `.agent/`. No live connections — just files. Every agent can be invoked independently and picks up where the last session left off.
 
 Use `/team <agent> <task>` to route to any specialist, `/lumos` (Phoenix theme) or `/help` (professional theme) to list every command. Use `agentic-crew doctor` to verify the install.
+
+### Limitations (read before v1 expectations)
+
+- **No orchestrator** — agents do not run automatically; you (the CEO) invoke slash commands in your IDE.
+- **`/team` is a convention** — the router skill tells the model to read another agent's skill file; it does not spawn separate agent processes.
+- **Protocol is voluntary** — models may skip reading `.agent/` unless you enforce it in your workflow; use `doctor --strict` to catch drift.
+- **File conflicts** — concurrent edits to the same `.agent/` file are not merged; coordinate via append-only messages.
+
+### 5-minute walkthrough
+
+1. `npx agentic-crew@1.0.0 init --yes --name my-app --frontend react --backend nodejs --preset startup`
+2. `agentic-crew doctor --strict`
+3. In Cursor: `/team manager Review backlog and update heartbeat`
+4. Confirm `.agent/reports/heartbeat.md` has structured frontmatter (`blockers`, `decisions_needed`, …)
+5. Add a task to `.agent/backlog/tasks.md`, then `/team backend Implement the top backlog item`
+
+See `examples/hello-team/` for a copy-paste config.
 
 ---
 

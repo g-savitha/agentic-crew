@@ -70,4 +70,27 @@ function loadThemePack(themeId, options = {}) {
   };
 }
 
-module.exports = { loadThemePack, loadExternalThemePack, EXTERNAL_PREFIXES };
+/**
+ * Theme pack metadata for templates and CLI output.
+ * @param {string} themeId
+ * @param {{ cwd?: string }} [options]
+ */
+function resolveThemePack(themeId, options = {}) {
+  return loadThemePack(themeId, options).pack;
+}
+
+/**
+ * @param {string} themeId
+ * @param {{ cwd?: string }} [options]
+ */
+function catalogCommandForThemeId(themeId, options = {}) {
+  return resolveThemePack(themeId, options).catalogCommand;
+}
+
+module.exports = {
+  loadThemePack,
+  loadExternalThemePack,
+  resolveThemePack,
+  catalogCommandForThemeId,
+  EXTERNAL_PREFIXES,
+};

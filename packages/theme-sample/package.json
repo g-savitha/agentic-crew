@@ -1,0 +1,17 @@
+{
+  "name": "@agentic-crew/theme-sample",
+  "version": "1.0.0",
+  "description": "Reference external theme pack for agentic-crew — copy to build your own @agentic-crew/theme-* package",
+  "main": "index.js",
+  "files": ["index.js", "README.md"],
+  "keywords": ["agentic-crew", "agentic-crew-theme"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g-savitha/agentic-crew.git",
+    "directory": "packages/theme-sample"
+  },
+  "peerDependencies": {
+    "agentic-crew": ">=1.0.0"
+  }
+}

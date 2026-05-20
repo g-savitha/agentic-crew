@@ -24,7 +24,7 @@ describe('config YAML safety', () => {
     assert.doesNotMatch(yaml, /^preset: minimal$/m);
     const parsed = parseSimpleYaml(yaml);
     assert.equal(parsed.name, 'evil\npreset: minimal');
-    assert.equal(parsed.preset, 'full');
+    assert.equal(parsed.preset, 'startup');
   });
 
   it('round-trips save-config fields through parse and normalize', async () => {

@@ -1,6 +1,6 @@
 const PRESETS = {
   full: {
-    label: 'Full team (default)',
+    label: 'Full team — all core roles',
     theme: null,
     excludeFiles: [],
   },
@@ -15,7 +15,7 @@ const PRESETS = {
     excludeFiles: ['marketing'],
   },
   startup: {
-    label: 'Startup — minimal delivery team, professional theme',
+    label: 'Startup (recommended) — lean delivery team, professional theme',
     theme: 'professional',
     excludeFiles: ['marketing', 'researcher', 'release-manager', 'perf', 'documentation'],
   },
@@ -28,7 +28,7 @@ const PRESET_KEYS = Object.keys(PRESETS);
  * @returns {{ key: string, excludeFiles: Set<string>, theme: string | null }}
  */
 function resolvePreset(preset) {
-  const key = (preset || 'full').toLowerCase();
+  const key = (preset || 'startup').toLowerCase();
   if (!PRESETS[key]) {
     throw new Error(`Invalid --preset "${preset}". Use: ${PRESET_KEYS.join(', ')}`);
   }

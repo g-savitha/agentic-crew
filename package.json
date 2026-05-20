@@ -1,6 +1,6 @@
 {
   "name": "agentic-crew",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "Scaffold a full AI engineering team into any project — personas, wired and ready in 60 seconds.",
   "main": "src/api.js",
   "types": "index.d.ts",
@@ -17,7 +17,9 @@
     "src/",
     "schema/",
     "examples/",
+    "packages/",
     "docs/",
+    "CONTRIBUTING.md",
     "index.d.ts",
     "LICENSE",
     "README.md",

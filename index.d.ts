@@ -101,7 +101,10 @@ export interface UninstallResult {
 }
 
 export function scaffold(answers: ScaffoldAnswers, options?: ScaffoldOptions): Promise<ScaffoldResult>;
-export function runDoctor(projectDir?: string, options?: { fix?: boolean; json?: boolean; quiet?: boolean }): Promise<DoctorResult>;
+export function runDoctor(
+  projectDir?: string,
+  options?: { fix?: boolean; prune?: boolean; strict?: boolean; json?: boolean; quiet?: boolean }
+): Promise<DoctorResult>;
 export function runUpdate(projectDir?: string, options?: {
   force?: boolean;
   forceOverwrite?: boolean;

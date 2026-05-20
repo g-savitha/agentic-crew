@@ -2,6 +2,52 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.0] - 2026-05-20
+
+### Added
+
+- **`@agentic-crew/theme-sample`** — publishable reference theme in `packages/theme-sample/`
+- External theme integration in templates (`/team`, `AGENTS.md`, cursor rule) via `resolveThemePack`
+- Tests for sample theme loading and scaffold output
+
+### Changed
+
+- **npm 1.0.0** — stable product release after v0.8 hardening
+- Manifest schema: `theme` and `catalogCommand` accept any string (external theme ids)
+- CLI accepts `--theme <id>` when a matching theme pack is installed
+- `doctor` manifest repair uses `startup` preset fallback (aligned with new installs)
+
+### Fixed
+
+- External themes were rejected by CLI (`THEMES` enum) and rendered with wrong catalog/start commands
+- `pruneStaleFiles` uses manifest `catalogCommand` for external themes
+
+## [0.8.0] - 2026-05-20
+
+### Added
+
+- **Starter runbooks** on init: `docs/runbooks/release.md`, `on-call.md`, `incident.md`
+- **Heartbeat validation** in `doctor` with `--strict` (structured YAML frontmatter)
+- **`doctor --prune`** — opt-in stale file removal with `--fix` (default fix no longer prunes)
+- **README**: limitations, 5-minute walkthrough, YAML config constraints
+- **Dogfood**: `.agent/` backlog on this repo; `examples/hello-team/` consumer example
+- **CONTRIBUTING.md** with PR and release checklists
+- **`src/heartbeat.js`** and **`src/runbooks.js`** utilities
+
+### Changed
+
+- **Default preset** is `startup` (CLI, questionnaire, config merge) for new installs
+- **`.agent/README.md` protocol** — heartbeat is overwrite snapshot; other reports may append
+- **SECURITY.md** supported versions updated for 0.7.x / 0.8.x
+- **External theme packs** documented as experimental in `docs/SCHEMA.md`
+- Scrum/setup skills aligned with structured heartbeat format
+
+### Fixed
+
+- Contradictory heartbeat append vs overwrite guidance across agent templates
+- DevOps/SRE skills referenced runbooks that were not scaffolded (only `.gitkeep`)
+- `doctor --fix` no longer prunes stale files unless `--prune` is passed
+
 ## [0.7.0] - 2026-05-19
 
 ### Added
