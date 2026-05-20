@@ -56,6 +56,35 @@ describe('@agentic-crew/theme-sample', () => {
     assert.match(manager, /Team Lead|Engineering Manager/);
   });
 
+  it('applyTheme strips custom role aliases for external themes', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-theme-custom-'));
+    await installSampleTheme(tmp);
+    const { resolveAllAgents } = require('../src/agents');
+    const agents = resolveAllAgents(
+      {
+        outputDir: tmp,
+        frontend: 'none',
+        backend: 'none',
+        domains: [],
+        optionalRoles: [],
+        customRoles: [
+          {
+            name: 'FinTech Lead',
+            file: 'fintech',
+            command: 'goldfinger',
+            character: 'Goldfinger',
+            trait: 'Precise',
+            description: 'Owns compliance',
+          },
+        ],
+      },
+      'sample'
+    );
+    const custom = agents.find((a) => a.file === 'fintech');
+    assert.ok(custom);
+    assert.equal(custom.command, undefined);
+  });
+
   it('resolveThemePack matches loadThemePack pack', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-theme-res-'));
     await installSampleTheme(tmp);

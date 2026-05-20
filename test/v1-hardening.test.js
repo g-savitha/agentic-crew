@@ -151,6 +151,56 @@ describe('v1 hardening', () => {
     assert.equal(await fs.pathExists(path.join(tmp, '.claude', 'commands', 'frontend.md')), false);
   });
 
+  it('doctor --strict fails when starter runbooks are missing', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-rb-strict-'));
+    await scaffold(
+      {
+        projectName: 'rb-strict-app',
+        frontend: 'none',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'professional',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    await fs.remove(path.join(tmp, 'docs', 'runbooks', 'release.md'));
+
+    const loose = await runDoctor(tmp, { json: true, quiet: true });
+    assert.equal(loose.ok, true);
+
+    const strict = await runDoctor(tmp, { strict: true, json: true, quiet: true });
+    assert.equal(strict.ok, false);
+    assert.ok(strict.issues.some((i) => /runbooks\/release\.md/.test(i)));
+  });
+
+  it('update creates missing runbooks on existing installs', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-rb-upd-'));
+    await scaffold(
+      {
+        projectName: 'rb-upd-app',
+        frontend: 'none',
+        backend: 'go',
+        domains: [],
+        customRoles: [],
+        outputDir: tmp,
+        theme: 'professional',
+        targets: 'claude',
+      },
+      testScaffoldOpts({ force: true })
+    );
+    await fs.remove(path.join(tmp, 'docs', 'runbooks'));
+
+    const { runUpdate } = require('../src/update');
+    await runUpdate(tmp, { quiet: true });
+
+    assert.ok(await fs.pathExists(path.join(tmp, 'docs', 'runbooks', 'release.md')));
+    assert.ok(await fs.pathExists(path.join(tmp, 'docs', 'runbooks', 'on-call.md')));
+    assert.ok(await fs.pathExists(path.join(tmp, 'docs', 'runbooks', 'incident.md')));
+  });
+
   it('config-driven init scaffolds security CI and runbooks', async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'ac-cfg-init-'));
     const { loadProjectConfig, mergeConfigWithOptions } = require('../src/config');

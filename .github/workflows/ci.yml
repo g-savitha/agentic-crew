@@ -23,4 +23,4 @@ jobs:
       - run: npm test
       - run: npm run test:smoke
       - run: node bin/cli.js init --yes --name ci-smoke --frontend none --backend go --domain ml --target claude --output-dir /tmp/agentic-crew-smoke --force
-      - run: node bin/cli.js doctor --dir /tmp/agentic-crew-smoke
+      - run: node bin/cli.js doctor --dir /tmp/agentic-crew-smoke --strict

@@ -32,5 +32,5 @@
 - [x] Doctor `--fix` without prune by default; `--prune` opt-in
 - [x] Default preset `startup` (questionnaire + CLI)
 - [x] CONTRIBUTING.md
-- [x] docs/SCHEMA.md: external themes marked experimental
+- [x] docs/SCHEMA.md: external themes + theme-sample package (1.0+)
 - [x] Tests: runbooks, security-ci, config init e2e, doctor strict

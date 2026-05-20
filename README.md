@@ -4,7 +4,7 @@
 
 ```bash
 # Pin the version — do not use bare `npx agentic-crew` in production (supply-chain risk)
-npx agentic-crew@1.0.0 init
+npx agentic-crew@1.0.1 init
 ```
 
 ---
@@ -21,19 +21,19 @@ You bring the ideas. The team executes.
 
 ```bash
 # Interactive (recommended) — pin version in scripts/CI
-npx agentic-crew@1.0.0 init
+npx agentic-crew@1.0.1 init
 
 # Config-driven init (place .agentic-crew.yaml in project root)
 npx agentic-crew init --save-config   # writes example config after scaffold
 
 # All IDE targets + /team router
-npx agentic-crew@1.0.0 init --yes \
+npx agentic-crew@1.0.1 init --yes \
   --name "my-app" \
   --target all \
   --preset startup
 
 # Non-interactive — enterprise preset (professional theme, lean roster)
-npx agentic-crew@1.0.0 init --yes \
+npx agentic-crew@1.0.1 init --yes \
   --name "my-app" \
   --description "A real-time collaboration tool" \
   --frontend nextjs \
@@ -52,13 +52,13 @@ npx agentic-crew doctor
 npx agentic-crew doctor --fix
 
 # Refresh command templates (preserves user-edited skill files and docs)
-npx agentic-crew@1.0.0 update
+npx agentic-crew@1.0.1 update
 
 # Preview update changes
 npx agentic-crew update --dry-run
 
 # Replace user-edited skill files with latest templates
-npx agentic-crew@1.0.0 update --force-overwrite
+npx agentic-crew@1.0.1 update --force-overwrite
 
 # Remove scaffold artifacts (keep .agent/ state)
 npx agentic-crew uninstall --keep-state
@@ -175,7 +175,7 @@ Init auto-discovers `.agentic-crew.yaml` or `.agentic-crew.config.json` in the o
 | `--dir` | Project directory (default `.`) |
 | `--fix` | Repair missing scaffold files |
 | `--prune` | With `--fix`, remove files no longer in the manifest roster |
-| `--strict` | Treat heartbeat/message protocol warnings as errors |
+| `--strict` | Treat heartbeat, message, runbook, and security-CI warnings as errors |
 | `--json` | Machine-readable JSON output |
 
 ### `uninstall` options
@@ -273,12 +273,12 @@ Use `/team <agent> <task>` to route to any specialist, `/lumos` (Phoenix theme) 
 
 - **No orchestrator** — agents do not run automatically; you (the CEO) invoke slash commands in your IDE.
 - **`/team` is a convention** — the router skill tells the model to read another agent's skill file; it does not spawn separate agent processes.
-- **Protocol is voluntary** — models may skip reading `.agent/` unless you enforce it in your workflow; use `doctor --strict` to catch drift.
+- **Protocol is voluntary** — models may skip reading `.agent/` unless you enforce it in your workflow; use `doctor --strict` to catch heartbeat, message, runbook, and security-CI drift.
 - **File conflicts** — concurrent edits to the same `.agent/` file are not merged; coordinate via append-only messages.
 
 ### 5-minute walkthrough
 
-1. `npx agentic-crew@1.0.0 init --yes --name my-app --frontend react --backend nodejs --preset startup`
+1. `npx agentic-crew@1.0.1 init --yes --name my-app --frontend react --backend nodejs --preset startup`
 2. `agentic-crew doctor --strict`
 3. In Cursor: `/team manager Review backlog and update heartbeat`
 4. Confirm `.agent/reports/heartbeat.md` has structured frontmatter (`blockers`, `decisions_needed`, …)

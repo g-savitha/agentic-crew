@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.1] - 2026-05-20
+
+### Fixed
+
+- `doctor --strict` now errors on missing starter runbooks and missing `security.yml` when expected
+- Custom roles respect external theme packs via `applyTheme()` (no stray character aliases)
+- `docs/SCHEMA.md` stable release line updated to 1.0.x
+- CI runs `doctor --strict` on smoke install; `test:smoke` uses isolated `--output-dir`
+
+### Changed
+
+- IDE tests split: codex/AGENTS.md always runs; cursor-only test skips on sandbox EPERM
+- Tests for strict runbook checks and `update` backfilling missing runbooks
+
 ## [1.0.0] - 2026-05-20
 
 ### Added
